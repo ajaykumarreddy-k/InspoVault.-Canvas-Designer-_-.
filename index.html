@@ -2915,11 +2915,19 @@
       }
     }
 
+    document.getElementById('authStatus').textContent = 'Module loaded. Waiting for Google...';
+
     // Process the credential when it's received from the sync callback in the <head>
     window._googleCredentialPromise.then(async (response) => {
+      document.getElementById('authStatus').textContent = 'Step 1: Credential received. Connecting to backend...';
       try {
+        if (!vaultAPI || !vaultAPI.verifyAuth) throw new Error("vaultAPI not loaded properly");
+        
         const result = await vaultAPI.verifyAuth(response.credential);
+        document.getElementById('authStatus').textContent = 'Step 2: Backend responded.';
+        
         if (result.allowed) {
+          document.getElementById('authStatus').textContent = 'Step 3: Allowed. Loading canvas...';
           storeSession(result);
           await showCanvas(result);
         } else {
@@ -2927,7 +2935,7 @@
         }
       } catch (err) {
         console.error('Auth error:', err);
-        document.getElementById('authStatus').textContent = 'Something went wrong. Try again.';
+        document.getElementById('authStatus').textContent = `Error: ${err.message}`;
       }
     });
 
