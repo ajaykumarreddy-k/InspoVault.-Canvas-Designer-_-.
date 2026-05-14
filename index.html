@@ -1,0 +1,3563 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>InspoVault - My Creative OS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Google+Sans:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400&family=Google+Sans+Display:ital,wght@0,400;0,700;1,400;1,700&family=Google+Sans+Text:wght@300;400;500&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --cream: #f5f0eb;
+      --blue: #2d5be3;
+      --blue-hover: #1a3fc2;
+      --text: #1a1a1a;
+      --muted: #6b6b6b;
+      --light: #a0a0a0;
+      --white: #ffffff;
+      --border: rgba(0, 0, 0, 0.08);
+      --grid: rgba(0, 0, 0, 0.05);
+
+      /* Semantic vars for themes */
+      --glass-bg: rgba(255, 255, 255, 0.85);
+      --nav-bg: rgba(245, 240, 235, 0.75);
+      --overlay-bg: rgba(245, 240, 235, 0.6);
+      --toast-bg: rgba(255, 255, 255, 0.95);
+      --input-bg: #fafafa;
+      --pet-speech-bg: rgba(255, 255, 255, 0.95);
+
+      /* Premium Easing Curves */
+      --ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.15);
+      --ease-out: cubic-bezier(0.21, 0.83, 0.26, 1);
+      --ease-elastic: cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    body.dark-theme {
+      --cream: #121212;
+      --blue: #4d75f3;
+      --text: #f5f5f5;
+      --muted: #a0a0a0;
+      --light: #6b6b6b;
+      --white: #1e1e1e;
+      --border: rgba(255, 255, 255, 0.1);
+      --grid: rgba(255, 255, 255, 0.05);
+
+      --glass-bg: rgba(30, 30, 30, 0.85);
+      --nav-bg: rgba(18, 18, 18, 0.75);
+      --overlay-bg: rgba(18, 18, 18, 0.75);
+      --toast-bg: rgba(30, 30, 30, 0.95);
+      --input-bg: #2a2a2a;
+      --pet-speech-bg: rgba(30, 30, 30, 0.95);
+    }
+
+    body.dark-theme .paper {
+      background: #2a2a2a;
+      border-color: rgba(255, 255, 255, 0.05);
+    }
+
+    body.dark-theme .paper:nth-child(2) {
+      background: #222;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Google Sans Text', 'Google Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--cream);
+      color: var(--text);
+      overflow-x: hidden;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      cursor: default;
+    }
+
+    /* ── CANVAS STYLES ── */
+    .viewport {
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+      background-color: var(--cream);
+      background-image:
+        linear-gradient(to right, var(--grid) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--grid) 1px, transparent 1px);
+      background-size: 110px 110px;
+      background-position: 50% 50%;
+      z-index: 1;
+      touch-action: none;
+    }
+
+    .workspace {
+      position: absolute;
+      width: 4000px;
+      height: 3000px;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      will-change: transform;
+    }
+
+    .canvas-content {
+      position: relative;
+      width: 1200px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .canvas-tools {
+      position: fixed;
+      top: 50%;
+      left: 24px;
+      transform: translateY(-50%);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      background: var(--glass-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 10px;
+      z-index: 800;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    }
+
+    .tool-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      color: var(--text);
+      position: relative;
+    }
+
+    .tool-btn:hover {
+      background: rgba(0, 0, 0, 0.05);
+    }
+
+    .tool-btn.active {
+      background: var(--blue);
+      color: var(--white);
+      box-shadow: 0 4px 12px rgba(45, 91, 227, 0.3);
+    }
+
+    .tool-btn.primary-add {
+      background: var(--blue);
+      color: var(--white);
+      border-radius: 50%;
+      margin-top: 8px;
+      font-size: 24px;
+      font-weight: 300;
+      box-shadow: 0 4px 14px rgba(45, 91, 227, 0.3);
+    }
+
+    .tool-btn.primary-add:hover {
+      background: var(--blue-hover);
+      transform: scale(1.05);
+      box-shadow: 0 8px 20px rgba(45, 91, 227, 0.4);
+    }
+
+    .tool-divider {
+      height: 1px;
+      width: 100%;
+      background: var(--border);
+      margin: 4px 0;
+    }
+
+    /* ── DYNAMIC CANVAS ELEMENTS ── */
+    .custom-text-wrapper {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      z-index: 50;
+    }
+
+    .custom-text {
+      font-family: 'Google Sans Display', sans-serif;
+      font-size: 32px;
+      font-weight: 500;
+      color: var(--text);
+      outline: none;
+      min-width: 50px;
+      padding: 8px 12px;
+      white-space: nowrap;
+      cursor: text;
+      border-radius: 8px;
+      transition: box-shadow 0.2s, background 0.2s;
+      animation: fadeUp 0.3s var(--ease-out) both;
+    }
+
+    .custom-text:empty:before {
+      content: 'Type something...';
+      color: var(--light);
+    }
+
+    .custom-text:focus {
+      background: rgba(255, 255, 255, 0.7);
+      box-shadow: 0 0 0 2px var(--blue);
+    }
+
+    .custom-folder {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      z-index: 40;
+      animation: fadeUp 0.4s var(--ease-spring) both;
+    }
+
+    .mini-folder {
+      transform: scale(0.5);
+      transform-origin: center bottom;
+      pointer-events: auto;
+    }
+
+    .folder-label {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text);
+      background: var(--glass-bg);
+      padding: 6px 16px;
+      border-radius: 100px;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      outline: none;
+      min-width: 60px;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      border: 1px solid transparent;
+      transition: border 0.2s;
+    }
+
+    .folder-label:focus {
+      border-color: var(--blue);
+    }
+
+    .custom-tile-wrapper {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      z-index: 45;
+      animation: fadeUp 0.4s var(--ease-spring) both;
+    }
+
+    .custom-tile-wrapper .icard {
+      position: relative;
+      pointer-events: auto;
+    }
+
+    .custom-tile-wrapper [contenteditable="true"] {
+      outline: none;
+      border-radius: 4px;
+      transition: box-shadow 0.2s, background 0.2s;
+    }
+
+    .custom-tile-wrapper [contenteditable="true"]:focus {
+      background: rgba(45, 91, 227, 0.05);
+      box-shadow: 0 0 0 2px rgba(45, 91, 227, 0.3);
+    }
+
+    .delete-btn {
+      position: absolute;
+      top: -10px;
+      right: -10px;
+      width: 24px;
+      height: 24px;
+      background: #ff4757;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      font-size: 14px;
+      line-height: 1;
+      cursor: pointer;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s, transform 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      box-shadow: 0 4px 8px rgba(255, 71, 87, 0.3);
+    }
+
+    .delete-btn:hover {
+      transform: scale(1.1);
+    }
+
+    .delete-btn:active {
+      transform: scale(0.9);
+    }
+
+    .custom-text-wrapper:hover .delete-btn,
+    .custom-folder:hover .delete-btn,
+    .custom-tile-wrapper:hover .delete-btn,
+    .custom-text-wrapper:focus-within .delete-btn,
+    .custom-folder:focus-within .delete-btn,
+    .custom-tile-wrapper:focus-within .delete-btn {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    ::selection {
+      background: rgba(45, 91, 227, 0.2);
+      color: var(--blue);
+    }
+
+    /* ── NAV ── */
+    nav:not(.vault-dock) {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 800;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 44px;
+      background: var(--nav-bg);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo {
+      font-family: 'Google Sans Display', sans-serif;
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+      color: var(--text);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      user-select: none;
+    }
+
+    .logo-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--blue);
+      display: inline-block;
+      box-shadow: 0 0 8px rgba(45, 91, 227, 0.4);
+      transition: transform 0.3s var(--ease-spring);
+    }
+
+    .logo:hover .logo-dot {
+      transform: scale(1.3);
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+    }
+
+    .nav-link {
+      position: relative;
+      font-size: 13.5px;
+      font-weight: 500;
+      color: var(--muted);
+      text-decoration: none;
+      padding: 4px 0;
+      cursor: pointer;
+    }
+
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 1.5px;
+      background: var(--text);
+      transform: scaleX(0);
+      transform-origin: right;
+      transition: transform 0.3s var(--ease-out);
+    }
+
+    .nav-link:hover {
+      color: var(--text);
+    }
+
+    .nav-link:hover::after {
+      transform: scaleX(1);
+      transform-origin: left;
+    }
+
+    .nav-btn {
+      font-family: 'Google Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 10px 20px;
+      border-radius: 100px;
+      background: var(--text);
+      color: var(--white);
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .nav-btn:hover {
+      background: var(--blue);
+      box-shadow: 0 6px 16px rgba(45, 91, 227, 0.3);
+    }
+
+    /* ── HERO CANVAS ── */
+    .hero {
+      position: relative;
+      width: 1200px;
+      height: 800px;
+      flex-shrink: 0;
+      border-radius: 32px;
+    }
+
+    .node {
+      position: absolute;
+      animation: fadeUp 0.8s var(--ease-elastic) both;
+      user-select: none;
+      transition: transform 0.1s linear;
+    }
+
+    .node-inner {
+      display: inline-block;
+      transition: transform 0.3s var(--ease-out);
+    }
+
+    .node:hover .node-inner {
+      transform: scale(1.05) translateY(-2px);
+    }
+
+    .node-title {
+      font-family: 'Google Sans Display', sans-serif;
+      font-size: 17px;
+      font-weight: 400;
+      letter-spacing: -0.2px;
+      color: var(--text);
+    }
+
+    .node-underline {
+      border-bottom: 1.5px solid var(--blue);
+      padding-bottom: 3px;
+      display: inline-block;
+    }
+
+    .node-muted {
+      font-size: 13px;
+      font-weight: 400;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    .node-small {
+      font-size: 12px;
+      font-weight: 400;
+      color: var(--light);
+      line-height: 1.7;
+    }
+
+    .node-blue {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--blue);
+    }
+
+    .strike {
+      position: relative;
+      display: inline-block;
+    }
+
+    .strike::after {
+      content: '';
+      position: absolute;
+      left: -2px;
+      right: -2px;
+      top: 50%;
+      height: 1.5px;
+      background: var(--blue);
+      transform: translateY(-50%);
+    }
+
+    .hero-title {
+      position: fixed;
+      left: 40px;
+      bottom: 40px;
+      z-index: 800;
+      pointer-events: none;
+    }
+
+    .hero-sup {
+      font-family: 'Google Sans Display', sans-serif;
+      font-size: 16px;
+      font-weight: 400;
+      color: var(--muted);
+      display: block;
+      margin-bottom: -4px;
+      margin-left: 4px;
+    }
+
+    .hero-main {
+      font-family: 'Google Sans Display', sans-serif;
+      font-size: 64px;
+      font-weight: 700;
+      letter-spacing: -0.04em;
+      line-height: 0.92;
+      color: var(--text);
+      display: inline-block;
+      pointer-events: auto;
+    }
+
+    .hero-main::after {
+      content: '.';
+      color: var(--blue);
+    }
+
+    .folder-stage {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-56%, -50%);
+      z-index: 20;
+      animation: floatY 6s ease-in-out infinite;
+    }
+
+    .folder {
+      cursor: pointer;
+      position: relative;
+      user-select: none;
+    }
+
+    .folder__back {
+      position: relative;
+      width: 160px;
+      height: 110px;
+      background: #3a9af5;
+      border-radius: 0 12px 12px 12px;
+      box-shadow: 0 12px 32px rgba(58, 154, 245, 0.25), inset 0 2px 4px rgba(255, 255, 255, 0.2);
+    }
+
+    .folder__back::after {
+      content: '';
+      position: absolute;
+      bottom: 100%;
+      left: 0;
+      width: 50px;
+      height: 14px;
+      background: #3a9af5;
+      border-radius: 6px 6px 0 0;
+      box-shadow: inset 0 2px 2px rgba(255, 255, 255, 0.2);
+    }
+
+    .folder__front {
+      position: absolute;
+      z-index: 3;
+      inset: 0;
+      background: linear-gradient(180deg, #66baff 0%, #4ea8f5 100%);
+      border-radius: 5px 12px 12px 12px;
+      transform-origin: bottom;
+      transition: transform 0.5s var(--ease-elastic), box-shadow 0.5s ease;
+      box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.4);
+    }
+
+    .folder:hover .folder__front,
+    .folder.open .folder__front {
+      transform: skew(12deg) scaleY(0.55) translateY(4px);
+      box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1), inset 0 1px 2px rgba(255, 255, 255, 0.4);
+    }
+
+    .paper {
+      position: absolute;
+      z-index: 2;
+      bottom: 8%;
+      left: 50%;
+      transform: translate(-50%, 12%);
+      width: 68%;
+      height: 76%;
+      background: #ececec;
+      border-radius: 6px;
+      transition: transform 0.5s var(--ease-spring), height 0.5s var(--ease-spring), width 0.5s var(--ease-spring);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--muted);
+      padding: 8px;
+      text-align: center;
+      border: 1px solid rgba(0, 0, 0, 0.04);
+    }
+
+    .paper:nth-child(2) {
+      background: #f4f4f4;
+      width: 79%;
+      height: 66%;
+      z-index: 1;
+    }
+
+    .paper:nth-child(3) {
+      background: var(--white);
+      width: 87%;
+      height: 57%;
+      font-size: 10px;
+      z-index: 0;
+    }
+
+    .folder:hover .paper:nth-child(1),
+    .folder.open .paper:nth-child(1) {
+      transform: translate(-122%, -66%) rotate(-14deg);
+    }
+
+    .folder:hover .paper:nth-child(2),
+    .folder.open .paper:nth-child(2) {
+      transform: translate(18%, -64%) rotate(13deg);
+      height: 74%;
+    }
+
+    .folder:hover .paper:nth-child(3),
+    .folder.open .paper:nth-child(3) {
+      transform: translate(-50%, -96%) rotate(3deg);
+      height: 72%;
+    }
+
+    .folder.open .paper:hover {
+      z-index: 10 !important;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.15);
+    }
+
+    .folder.open .paper:nth-child(1):hover {
+      transform: translate(-122%, -76%) rotate(-10deg) scale(1.05);
+    }
+
+    .card-stack {
+      position: absolute;
+      z-index: 15;
+      user-select: none;
+      transition: transform 0.1s linear;
+    }
+
+    .icard {
+      position: absolute;
+      width: 200px;
+      border-radius: 18px;
+      padding: 22px 20px 24px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06), 0 2px 8px rgba(0, 0, 0, 0.04);
+      transition: transform 0.4s var(--ease-spring), box-shadow 0.4s ease, z-index 0s;
+      cursor: default;
+    }
+
+    .icard-cream {
+      background: var(--cream);
+      border: 1px solid rgba(0, 0, 0, 0.06);
+    }
+
+    .icard-white {
+      background: var(--white);
+      border: 1px solid rgba(0, 0, 0, 0.06);
+    }
+
+    .icard-blue {
+      background: var(--blue);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .stack-1 {
+      top: 12%;
+      right: 6%;
+    }
+
+    .stack-1 .icard:nth-child(1) {
+      transform: rotate(-4deg);
+      z-index: 1;
+    }
+
+    .stack-1 .icard:nth-child(2) {
+      top: 24px;
+      left: 28px;
+      transform: rotate(2deg);
+      z-index: 2;
+    }
+
+    .stack-1 .icard:nth-child(3) {
+      top: 52px;
+      left: 8px;
+      transform: rotate(-1deg);
+      z-index: 3;
+    }
+
+    .stack-1:hover .icard:nth-child(1) {
+      transform: translate(-40px, -20px) rotate(-12deg);
+      box-shadow: 0 16px 32px rgba(0, 0, 0, 0.1);
+    }
+
+    .stack-1:hover .icard:nth-child(2) {
+      transform: translate(40px, -10px) rotate(8deg);
+    }
+
+    .stack-1:hover .icard:nth-child(3) {
+      transform: translate(10px, 30px) rotate(-2deg);
+    }
+
+    .stack-2 {
+      top: 38%;
+      left: 4%;
+    }
+
+    .stack-2 .icard:nth-child(1) {
+      transform: rotate(3deg);
+      z-index: 1;
+    }
+
+    .stack-2 .icard:nth-child(2) {
+      top: 20px;
+      left: 18px;
+      transform: rotate(-2deg);
+      z-index: 2;
+    }
+
+    .stack-2:hover .icard:nth-child(1) {
+      transform: translate(-30px, -15px) rotate(-6deg);
+    }
+
+    .stack-2:hover .icard:nth-child(2) {
+      transform: translate(30px, 15px) rotate(4deg);
+    }
+
+    .stack-3 {
+      bottom: 14%;
+      right: 5%;
+    }
+
+    .stack-3 .icard:nth-child(1) {
+      transform: rotate(-2deg);
+      z-index: 1;
+    }
+
+    .stack-3 .icard:nth-child(2) {
+      top: 28px;
+      left: 22px;
+      transform: rotate(3deg);
+      z-index: 2;
+    }
+
+    .stack-3:hover .icard:nth-child(1) {
+      transform: translate(-25px, -15px) rotate(-8deg);
+    }
+
+    .stack-3:hover .icard:nth-child(2) {
+      transform: translate(25px, 20px) rotate(6deg);
+    }
+
+    .icard:hover {
+      z-index: 50 !important;
+    }
+
+    .card-illo {
+      width: 56px;
+      height: 56px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .card-illo svg {
+      width: 52px;
+      height: 52px;
+    }
+
+    .card-title {
+      font-family: 'Google Sans Display', sans-serif;
+      font-size: 17px;
+      font-weight: 700;
+      line-height: 1.25;
+      letter-spacing: -0.3px;
+      color: var(--text);
+      margin-bottom: 12px;
+    }
+
+    .icard-blue .card-title {
+      color: var(--white);
+    }
+
+    .card-by {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--light);
+    }
+
+    .icard-blue .card-by {
+      color: rgba(255, 255, 255, 0.65);
+    }
+
+    .card-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--blue);
+      border: 1px solid rgba(45, 91, 227, 0.2);
+      border-radius: 100px;
+      padding: 4px 10px;
+      margin-bottom: 16px;
+      background: rgba(45, 91, 227, 0.04);
+    }
+
+    .icard-blue .card-tag {
+      color: var(--white);
+      border-color: rgba(255, 255, 255, 0.3);
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .illo-stroke {
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .icard-blue .illo-stroke {
+      color: rgba(255, 255, 255, 0.95);
+    }
+
+    .icard-cream .illo-stroke,
+    .icard-white .illo-stroke {
+      color: var(--text);
+    }
+
+    /* ── CTA ── */
+    .hero-cta {
+      position: fixed;
+      bottom: 46px;
+      right: 120px;
+      display: flex;
+      gap: 14px;
+      align-items: center;
+      animation: fadeUp 0.8s 0.5s var(--ease-elastic) both;
+      z-index: 800;
+    }
+
+    .cta-btn {
+      font-family: 'Google Sans', sans-serif;
+      font-size: 14.5px;
+      font-weight: 500;
+      padding: 14px 28px;
+      border-radius: 100px;
+      background: var(--text);
+      color: var(--white);
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+      display: inline-block;
+    }
+
+    .cta-btn:hover {
+      background: var(--blue);
+      transform: translateY(-3px) scale(1.02);
+      box-shadow: 0 12px 28px rgba(45, 91, 227, 0.35);
+    }
+
+    .cta-btn:active {
+      transform: translateY(1px) scale(0.98);
+    }
+
+
+    /* ── HUD OVERLAYS (Toast, Pet) ── */
+    .toast {
+      position: fixed;
+      background: var(--toast-bg);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      padding: 6px 14px 6px 6px;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1), 0 4px 12px rgba(0, 0, 0, 0.05);
+      z-index: 9999;
+      animation: fadeDownToast 0.8s var(--ease-elastic) both;
+      user-select: none;
+      transition: opacity 0.3s ease, transform 0.3s var(--ease-out);
+      top: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: max-content;
+      max-width: 90vw;
+    }
+
+    .toast.hidden {
+      opacity: 0;
+      transform: translate(-50%, -20px) scale(0.95);
+      pointer-events: none;
+    }
+
+    .toast-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--blue);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--white);
+      font-size: 11px;
+      font-weight: 700;
+      flex-shrink: 0;
+      box-shadow: inset 0 -2px 4px rgba(0, 0, 0, 0.15);
+    }
+
+    .toast-content {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      justify-content: space-between;
+    }
+
+    .toast-message {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    .toast-highlight {
+      font-weight: 600;
+      color: var(--blue);
+    }
+
+    .toast-action {
+      font-size: 12px;
+      color: var(--text);
+      background: var(--input-bg);
+      font-weight: 600;
+      text-decoration: none;
+      padding: 6px 14px;
+      border-radius: 100px;
+      transition: all 0.2s;
+    }
+
+    .toast-action:hover {
+      background: rgba(45, 91, 227, 0.1);
+      color: var(--blue);
+    }
+
+    .toast-close-capsule {
+      background: none;
+      border: none;
+      font-size: 20px;
+      color: var(--light);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      transition: color 0.2s;
+      padding: 0 4px;
+    }
+
+    .toast-close-capsule:hover {
+      color: var(--text);
+    }
+
+    /* ── GENERIC MODAL OVERLAYS (Login, Add, Boards, Search, Storage, Folder) ── */
+    .generic-overlay {
+      position: fixed;
+      inset: 0;
+      background: var(--overlay-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      opacity: 1;
+      transition: opacity 0.3s ease;
+    }
+
+    .generic-overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .generic-box {
+      position: relative;
+      text-align: left;
+      background: var(--white);
+      border-radius: 24px;
+      padding: 32px;
+      width: 480px;
+      max-width: 90%;
+      box-shadow: 0 32px 64px rgba(0, 0, 0, 0.1);
+      border: 1px solid var(--border);
+      transform: translateY(0) scale(1);
+      transition: transform 0.4s var(--ease-spring);
+    }
+
+    .generic-box.large {
+      width: 640px;
+    }
+
+    .generic-box.xlarge {
+      width: 880px;
+      max-width: 95%;
+    }
+
+    .generic-box.center {
+      text-align: center;
+    }
+
+    .generic-overlay.hidden .generic-box {
+      transform: translateY(20px) scale(0.95);
+    }
+
+    .close-generic {
+      position: absolute;
+      top: 24px;
+      right: 28px;
+      font-size: 24px;
+      color: var(--light);
+      cursor: pointer;
+      border: none;
+      background: none;
+      transition: color 0.2s;
+    }
+
+    .close-generic:hover {
+      color: var(--text);
+    }
+
+    .modal-title {
+      font-family: 'Google Sans Display', sans-serif;
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 24px;
+    }
+
+    /* Login Modal Specifics */
+    .login-icon {
+      width: 56px;
+      height: 56px;
+      background: rgba(45, 91, 227, 0.1);
+      color: var(--blue);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      margin: 0 auto 20px;
+    }
+
+    .login-title {
+      font-family: 'Google Sans Display', sans-serif;
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 8px;
+      letter-spacing: -0.5px;
+    }
+
+    .login-sub {
+      font-size: 15px;
+      color: var(--muted);
+      margin-bottom: 36px;
+      line-height: 1.5;
+    }
+
+    .google-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      width: 100%;
+      padding: 16px;
+      border-radius: 100px;
+      border: 1px solid var(--border);
+      background: var(--white);
+      font-family: 'Google Sans', sans-serif;
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--text);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .google-btn:hover {
+      background: #fcfcfc;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.06);
+      transform: translateY(-1px);
+    }
+
+    .auth-loader {
+      border: 3px solid rgba(0, 0, 0, 0.1);
+      border-top-color: var(--blue);
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      animation: spin 1s linear infinite;
+      display: inline-block;
+    }
+
+    /* Boards Modal Specifics */
+    .boards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 16px;
+      margin-top: 20px;
+    }
+
+    .board-card {
+      padding: 24px;
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-weight: 600;
+      color: var(--text);
+      font-size: 14px;
+    }
+
+    .board-card:hover {
+      border-color: var(--blue);
+      color: var(--blue);
+      background: rgba(45, 91, 227, 0.02);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px rgba(45, 91, 227, 0.1);
+    }
+
+    /* Search Modal Specifics */
+    .search-input-huge {
+      width: 100%;
+      font-size: 24px;
+      border: none;
+      outline: none;
+      padding: 16px 0;
+      border-bottom: 2px solid var(--border);
+      font-family: 'Google Sans Display', sans-serif;
+      background: transparent;
+      transition: border-color 0.2s;
+      color: var(--text);
+    }
+
+    .search-input-huge:focus {
+      border-color: var(--blue);
+    }
+
+    /* Add & Folder Modal Specifics */
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    .type-tabs {
+      display: flex;
+      background: var(--cream);
+      border-radius: 12px;
+      padding: 4px;
+      gap: 4px;
+      margin-bottom: 24px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .type-tabs::-webkit-scrollbar {
+      display: none;
+    }
+
+    .type-tab {
+      flex: 1;
+      text-align: center;
+      padding: 8px 4px;
+      font-size: 12px;
+      font-weight: 600;
+      font-family: 'Google Sans', sans-serif;
+      color: var(--muted);
+      background: transparent;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .type-tab.active {
+      background: var(--white);
+      color: var(--blue);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .add-input,
+    .add-select,
+    .add-textarea {
+      width: 100%;
+      padding: 14px 16px;
+      font-family: 'Google Sans', sans-serif;
+      font-size: 14px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--input-bg);
+      color: var(--text);
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    .add-input:focus,
+    .add-select:focus,
+    .add-textarea:focus {
+      border-color: var(--blue);
+      background: var(--white);
+      box-shadow: 0 0 0 3px rgba(45, 91, 227, 0.1);
+    }
+
+    .add-textarea {
+      resize: vertical;
+      min-height: 140px;
+    }
+
+    .drop-zone {
+      border: 2px dashed var(--border);
+      border-radius: 12px;
+      padding: 40px 20px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 14px;
+      cursor: default;
+      transition: all 0.2s;
+      background: var(--input-bg);
+      user-select: none;
+      pointer-events: auto;
+    }
+
+    .drop-zone:hover {
+      border-color: var(--border);
+      color: var(--muted);
+      background: var(--input-bg);
+    }
+
+    .drop-zone.drag-over {
+      border-color: var(--blue);
+      color: var(--blue);
+      background: rgba(45, 91, 227, 0.04);
+    }
+
+    .input-section,
+    .content-section {
+      display: none;
+    }
+
+    .input-section.active,
+    .content-section.active {
+      display: block;
+      animation: fadeUp 0.3s ease both;
+    }
+
+    .radio-group {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .radio-label {
+      flex: 1;
+      position: relative;
+      cursor: pointer;
+    }
+
+    .radio-label input {
+      position: absolute;
+      opacity: 0;
+      cursor: pointer;
+      height: 0;
+      width: 0;
+    }
+
+    .radio-custom {
+      display: block;
+      text-align: center;
+      padding: 10px;
+      font-family: 'Google Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--muted);
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+
+    .radio-label:hover .radio-custom {
+      background: var(--cream);
+    }
+
+    .radio-label input:checked~.radio-custom {
+      background: var(--white);
+      color: var(--blue);
+      border-color: var(--blue);
+      box-shadow: 0 2px 8px rgba(45, 91, 227, 0.1);
+    }
+
+    /* ── DOC NODE WIDGET ── */
+    .doc-node-wrapper {
+      position: absolute;
+      z-index: 45;
+    }
+
+    .doc-node-wrapper:hover {
+      z-index: 55;
+    }
+
+    .doc-node-wrapper:hover .delete-btn,
+    .doc-node-wrapper:focus-within .delete-btn {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .doc-card {
+      width: 320px;
+      height: 460px;
+      background: var(--white);
+      border-radius: 24px;
+      box-shadow: 0 24px 48px rgba(0, 0, 0, 0.08), 0 8px 16px rgba(0, 0, 0, 0.04);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+      pointer-events: auto;
+      border: 1px solid var(--border);
+      animation: fadeUp 0.4s var(--ease-spring) both;
+      resize: both;
+      min-width: 240px;
+      min-height: 240px;
+    }
+
+    .doc-header {
+      padding: 16px 20px 12px;
+      display: flex;
+      align-items: center;
+      background: var(--white);
+      z-index: 2;
+      cursor: grab;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .doc-header:active {
+      cursor: grabbing;
+    }
+
+    .doc-title-pill {
+      background: var(--input-bg);
+      padding: 8px 18px;
+      border-radius: 100px;
+      font-family: 'Google Sans Display', sans-serif;
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--text);
+      outline: none;
+      border: 1px solid transparent;
+      transition: border 0.2s;
+      min-width: 100px;
+    }
+
+    .doc-title-pill:focus {
+      border-color: var(--blue);
+      background: var(--white);
+    }
+
+    .doc-iframe-container {
+      flex-grow: 1;
+      position: relative;
+      width: 100%;
+      background: var(--white);
+    }
+
+    .doc-iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: transparent;
+    }
+
+    /* ── FOLDER CONTENT GRID (MASONRY) ── */
+    .file-grid {
+      column-count: 3;
+      column-gap: 20px;
+      padding: 20px 28px 12px;
+    }
+
+    @media (max-width: 900px) {
+      .file-grid {
+        column-count: 2;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .file-grid {
+        column-count: 1;
+      }
+    }
+
+    /* Base card — wraps image + label */
+    .grid-card {
+      position: relative;
+      break-inside: avoid;
+      margin-bottom: 28px;
+      cursor: pointer;
+      background: transparent;
+      border: none;
+      box-shadow: none;
+      border-radius: 0;
+    }
+
+    .grid-card:hover .grid-card-img-wrap {
+      transform: translateY(-3px);
+      box-shadow: 0 20px 48px rgba(0, 0, 0, 0.12);
+    }
+
+    /* The image/icon container */
+    .grid-card-img-wrap {
+      width: 100%;
+      border-radius: 16px;
+      overflow: hidden;
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+      transition: transform 0.3s var(--ease-spring), box-shadow 0.3s ease;
+    }
+
+    body.dark-theme .grid-card-img-wrap {
+      background: #1e1e1e;
+      border-color: rgba(255, 255, 255, 0.08);
+    }
+
+    /* Icon-only cards (Docs, MD files) */
+    .grid-card-icon {
+      font-size: 52px;
+      height: 180px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+    }
+
+    /* The label text below the card */
+    .grid-card-title {
+      font-family: 'Google Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--muted);
+      margin-top: 10px;
+      padding: 0 4px;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      transition: color 0.2s;
+    }
+
+    .grid-card:hover .grid-card-title {
+      color: var(--text);
+    }
+
+    /* Media cards — image fills the wrap */
+    .grid-card.media-card .grid-card-img-wrap {
+      background: #f0f0f0;
+    }
+
+    .grid-card-thumb {
+      width: 100%;
+      height: auto;
+      display: block;
+      object-fit: cover;
+      transition: transform 0.4s ease;
+    }
+
+    .grid-card:hover .grid-card-thumb {
+      transform: scale(1.02);
+    }
+
+    /* Hide all leftover old elements */
+    .grid-card-desc,
+    .grid-card .toast-action,
+    .media-card-tags,
+    .media-card-body,
+    .media-card-img-wrap {
+      display: none;
+    }
+
+    /* Fullscreen Lightbox Viewer */
+    .fullscreen-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.9);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 11000;
+      opacity: 1;
+      transition: opacity 0.3s ease;
+    }
+
+    .fullscreen-overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .fullscreen-img {
+      max-width: 90vw;
+      max-height: 90vh;
+      border-radius: 12px;
+      object-fit: contain;
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
+      transform: scale(1);
+      transition: transform 0.3s var(--ease-spring);
+    }
+
+    .fullscreen-overlay.hidden .fullscreen-img {
+      transform: scale(0.9);
+    }
+
+    .fullscreen-close {
+      position: absolute;
+      top: 24px;
+      right: 32px;
+      font-size: 32px;
+      color: white;
+      cursor: pointer;
+      border: none;
+      background: none;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+      transition: transform 0.2s;
+    }
+
+    .fullscreen-close:hover {
+      transform: scale(1.2);
+    }
+
+    /* ── DRAGGING STATE ── */
+    body.dragging-state iframe {
+      pointer-events: none !important;
+    }
+
+    /* ── VAULT DOCK UI ── */
+    .vault-directory-box {
+      width: 1000px;
+      max-width: 95vw;
+      height: 82vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      padding: 32px 0 0 0 !important;
+      /* override generic-box padding for this modal */
+    }
+
+    .vault-directory-box .modal-title {
+      padding: 0 32px;
+      margin-bottom: 16px;
+      flex-shrink: 0;
+    }
+
+    .vault-directory-box .close-generic {
+      top: 20px;
+      right: 24px;
+    }
+
+    /* Scrollable content area inside the vault */
+    .vault-content-area {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      min-height: 0;
+      padding-bottom: 80px;
+    }
+
+    .vault-content-area::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .vault-content-area::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 4px;
+    }
+
+    /* Dock sits naturally at the bottom as a flex child */
+    .vault-dock {
+      position: absolute;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      display: flex;
+      gap: 6px;
+      padding: 8px;
+      border-radius: 100px;
+      background: var(--white);
+      border: 1px solid var(--border);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+
+    body.dark-theme .vault-dock {
+      background: #1e1e1e;
+    }
+
+    .dock-item {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      padding: 9px 16px;
+      border-radius: 100px;
+      font-family: 'Google Sans', sans-serif;
+      font-size: 13.5px;
+      font-weight: 600;
+      color: var(--muted);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      transition: all 0.25s var(--ease-spring);
+      white-space: nowrap;
+    }
+
+    .dock-item:hover {
+      color: var(--text);
+      background: var(--cream);
+    }
+
+    .dock-item.active {
+      background: var(--text);
+      color: var(--white);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+    }
+
+    .dock-icon {
+      font-size: 17px;
+      line-height: 1;
+    }
+
+    /* ── CARD ACTIONS ── */
+    .grid-card-actions {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      display: flex;
+      gap: 8px;
+      opacity: 0;
+      transition: opacity 0.2s var(--ease-out);
+      z-index: 10;
+    }
+
+    .grid-card:hover .grid-card-actions {
+      opacity: 1;
+    }
+
+    .action-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(4px);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--muted);
+      transition: all 0.2s;
+    }
+
+    body.dark-theme .action-btn {
+      background: rgba(30, 30, 30, 0.8);
+      color: #a0a0a0;
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .action-btn:hover {
+      background: var(--white);
+      color: var(--text);
+      transform: scale(1.1);
+    }
+
+    body.dark-theme .action-btn:hover {
+      background: #2a2a2a;
+      color: #fff;
+    }
+
+    .action-btn.like-btn.active {
+      color: #ff4b4b;
+    }
+
+    .action-btn.like-btn.active svg {
+      fill: currentColor;
+    }
+
+    /* ── ANIMATIONS ── */
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(24px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeDownToast {
+      from {
+        opacity: 0;
+        transform: translate(-50%, -24px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translate(-50%, 0);
+      }
+    }
+
+    @keyframes floatY {
+
+      0%,
+      100% {
+        transform: translate(-56%, -50%) translateY(0);
+      }
+
+      50% {
+        transform: translate(-56%, -50%) translateY(-18px);
+      }
+    }
+
+    /* ── VAULT SPIRIT ── */
+    .vault-pet-wrapper {
+      position: fixed;
+      bottom: 50px;
+      left: 350px;
+      width: auto;
+      height: auto;
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    .pet-container {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      pointer-events: auto;
+    }
+
+    .pet-avatar {
+      height: 64px;
+      width: auto;
+      filter: drop-shadow(0 6px 12px rgba(45, 91, 227, 0.25));
+      transition: transform 0.2s var(--ease-spring);
+      cursor: pointer;
+    }
+
+    .pet-avatar:hover {
+      transform: translateY(-5px) scale(1.05);
+    }
+
+    .pet-speech {
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%) translateY(10px) scale(0.8);
+      margin-bottom: 5px;
+      background: var(--pet-speech-bg);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 8px 14px;
+      font-size: 11.5px;
+      font-weight: 500;
+      color: var(--text);
+      white-space: nowrap;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.4s var(--ease-spring);
+    }
+
+    .pet-speech::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border-width: 6px;
+      border-style: solid;
+      border-color: var(--pet-speech-bg) transparent transparent transparent;
+    }
+
+    .pet-speech.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0) scale(1);
+    }
+
+    @media (max-width: 1300px) {
+      .hero-main {
+        font-size: 48px;
+      }
+
+      .vault-pet-wrapper {
+        left: 280px;
+        bottom: 44px;
+      }
+
+      .hero-cta {
+        right: 40px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      nav:not(.vault-dock) {
+        padding: 16px 24px;
+      }
+
+      .nav-link {
+        display: none;
+      }
+
+      .nav-right {
+        gap: 16px;
+      }
+
+      .canvas-tools {
+        left: 16px;
+        padding: 6px;
+        top: 80px;
+        transform: none;
+      }
+
+      .tool-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
+      }
+
+      .toast {
+        max-width: 90vw;
+        top: 70px;
+      }
+
+      .vault-pet-wrapper {
+        left: auto;
+        right: 24px;
+        bottom: 160px;
+      }
+
+      .hero-title {
+        bottom: 140px;
+        left: 24px;
+      }
+
+      .hero-main {
+        font-size: 52px;
+      }
+
+      .hero-cta {
+        bottom: 230px;
+        right: 24px;
+        flex-direction: column;
+        align-items: flex-end;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- CANVAS TOOLS -->
+  <div class="canvas-tools">
+    <button class="tool-btn active" id="pointerBtn" title="Select (V)">↖</button>
+    <button class="tool-btn" id="handBtn" title="Pan Canvas (Space or H)">✋</button>
+    <div class="tool-divider"></div>
+    <button class="tool-btn" id="textBtn" title="Add Text (T)">T</button>
+    <button class="tool-btn" id="folderBtn" title="Add Folder (F)">📁</button>
+    <button class="tool-btn" id="tileBtn" title="Add Tile (C)">🎴</button>
+    <button class="tool-btn primary-add magnetic" id="addBtn" data-strength="15" title="Add Item">+</button>
+  </div>
+
+  <!-- NAV -->
+  <nav>
+    <a href="#" class="logo"><span class="logo-dot"></span> InspoVault</a>
+    <div class="nav-right">
+      <a class="nav-link" id="themeToggle" title="Toggle Theme" style="font-size: 16px; cursor: pointer;">🌙</a>
+      <a class="nav-link" id="navBoards">Boards</a>
+      <a class="nav-link" id="navSearch">Search</a>
+      <a class="nav-link">Settings</a>
+      <button class="nav-btn magnetic vault-trigger" data-strength="20">Open Vault</button>
+    </div>
+  </nav>
+
+  <!-- TOAST NOTIFICATION (CAPSULE) -->
+  <div class="toast hidden" id="toast">
+    <div class="toast-avatar">IV</div>
+    <div class="toast-content">
+      <span class="toast-message">New item saved to <span class="toast-highlight">Vault</span></span>
+      <div style="display:flex; align-items:center; gap: 8px;">
+        <a href="#" class="toast-action">View</a>
+        <button class="toast-close-capsule" id="toastCloseBtn" title="Close Notification">&times;</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FIXED HUD TITLES -->
+  <div class="hero-title">
+    <span class="hero-sup">my Creative OS.</span>
+    <h1 class="hero-main">InspoVault</h1>
+  </div>
+
+  <div class="hero-cta">
+    <a href="#" class="cta-btn vault-trigger">open my vault →</a>
+  </div>
+
+  <!-- ==========================================
+     MODALS
+=========================================== -->
+
+  <!-- 1. LOGIN MODAL (Mandatory on load) -->
+  <div class="generic-overlay" id="loginModal">
+    <div class="generic-box center">
+      <div class="login-icon">🔐</div>
+      <h2 class="login-title">Unlock Your Vault</h2>
+      <p class="login-sub">Sign in ONLY Few accounts are white Listed So its unlikely that ur Account is there LOL
+        Anyway</p>
+
+      <button class="google-btn" id="googleLoginBtn">
+        <svg viewBox="0 0 24 24" width="20" height="20" xmlns="http://www.w3.org/2000/svg">
+          <path
+            d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+            fill="#4285F4" />
+          <path
+            d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+            fill="#34A853" />
+          <path
+            d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+            fill="#FBBC05" />
+          <path
+            d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+            fill="#EA4335" />
+        </svg>
+        Continue with Google
+      </button>
+    </div>
+  </div>
+
+  <!-- 2. STORAGE MODAL (Opens via Vault Unlocked button) -->
+  <div class="generic-overlay hidden" id="storageModal">
+    <div class="generic-box center" style="width: 400px;">
+      <button class="close-generic">&times;</button>
+      <div style="font-size: 48px; margin-bottom: 16px;">☁️</div>
+      <h2 class="modal-title" style="margin-bottom: 8px;">Google Drive Storage</h2>
+      <p class="login-sub" style="margin-bottom: 24px;">Your vault is securely synced with your Drive.</p>
+      <div style="background: var(--cream); border-radius: 12px; padding: 24px;">
+        <div
+          style="font-family: 'Google Sans Display', sans-serif; font-size: 32px; font-weight: 700; color: var(--blue);">
+          ∞</div>
+        <div
+          style="font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 4px;">
+          Unlimited Storage Active</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. BOARDS GRID MODAL -->
+  <div class="generic-overlay hidden" id="boardsModal">
+    <div class="generic-box large">
+      <button class="close-generic">&times;</button>
+      <h2 class="modal-title">Your Boards</h2>
+      <div class="boards-grid">
+        <div class="board-card">💬 Prompts</div>
+        <div class="board-card">🖼️ Images</div>
+        <div class="board-card">✦ Design Refs</div>
+        <div class="board-card">⚛️ React Components</div>
+        <div class="board-card">🔗 Websites</div>
+        <div class="board-card">📁 General Inbox</div>
+        <div class="board-card">📝 Dev Logs</div>
+        <div class="board-card" style="border: 2px dashed var(--border); background: transparent; color: var(--muted);">
+          + New Board</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. SEARCH MODAL -->
+  <div class="generic-overlay hidden" id="searchModal">
+    <div class="generic-box large">
+      <button class="close-generic">&times;</button>
+      <input type="text" class="search-input-huge" placeholder="Search inspiration, tags, or text..." id="searchInput">
+      <div style="margin-top: 24px;">
+        <div class="form-label" id="searchResultsLabel">Recent Searches</div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;" id="recentSearchChips">
+          <span class="radio-custom" style="padding: 6px 12px; font-size: 12px; cursor:pointer;" onclick="document.getElementById('searchInput').value=this.innerText;document.getElementById('searchInput').dispatchEvent(new Event('input'))">Minimalist UI</span>
+          <span class="radio-custom" style="padding: 6px 12px; font-size: 12px; cursor:pointer;" onclick="document.getElementById('searchInput').value='Midjourney';document.getElementById('searchInput').dispatchEvent(new Event('input'))">Midjourney</span>
+          <span class="radio-custom" style="padding: 6px 12px; font-size: 12px; cursor:pointer;" onclick="document.getElementById('searchInput').value=this.innerText;document.getElementById('searchInput').dispatchEvent(new Event('input'))">Dashboard</span>
+        </div>
+        <div id="searchResults" style="margin-top: 16px; display: flex; flex-direction: column; gap: 8px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. ADD ITEM MODAL -->
+  <div class="generic-overlay hidden" id="addModal">
+    <div class="generic-box large">
+      <button class="close-generic">&times;</button>
+      <h2 class="modal-title">Add to Vault</h2>
+
+      <div class="type-tabs">
+        <button class="type-tab active" data-type="prompt">Prompt</button>
+        <button class="type-tab" data-type="link">Link</button>
+        <button class="type-tab" data-type="image">Image</button>
+        <button class="type-tab" data-type="design">Design</button>
+        <button class="type-tab" data-type="react">React</button>
+        <button class="type-tab" data-type="docs">Docs</button>
+        <button class="type-tab" data-type="pdf">PDF</button>
+        <button class="type-tab" data-type="md">MD</button>
+        <button class="type-tab" data-type="skills">Skills</button>
+        <button class="type-tab" data-type="zip">ZIP</button>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Destination Folder</label>
+        <select class="add-select" id="folderSelect">
+          <option value="prompts">💬 Prompts</option>
+          <option value="images">🖼️ Images</option>
+          <option value="design">✦ Design Refs</option>
+          <option value="react">⚛️ React Components</option>
+          <option value="links">🔗 Websites</option>
+          <option value="skills">🧠 Skills</option>
+          <option value="zip">🗜️ Archives</option>
+          <option value="general">📁 General Inbox</option>
+        </select>
+      </div>
+
+      <!-- Dynamic Inputs -->
+      <div id="input-prompt" class="input-section active">
+        <div class="form-group"><label class="form-label">AI Prompt</label><textarea class="add-textarea"
+            placeholder="Paste your Midjourney/Claude prompt here..."></textarea></div>
+        <div class="form-group">
+          <label class="form-label">Reference Image <span style="font-weight:400;color:var(--muted);text-transform:none;letter-spacing:0;">(optional)</span></label>
+          <div class="drop-zone"><span style="font-size:24px;display:block;margin-bottom:8px">🖼️</span>Drag & drop a reference image</div>
+        </div>
+      </div>
+      <div id="input-link" class="input-section">
+        <div class="form-group"><label class="form-label">Website URL</label><input type="url" class="add-input"
+            placeholder="https://example.com/..."></div>
+        <div class="form-group"><label class="form-label">Upload Screenshot</label>
+          <div class="drop-zone"><span style="font-size:24px;display:block;margin-bottom:8px">📸</span>Drag & drop
+            screenshot</div>
+        </div>
+      </div>
+      <div id="input-image" class="input-section">
+        <label class="form-label">Subcategory</label>
+        <div class="radio-group">
+          <label class="radio-label"><input type="radio" name="imageCategory" value="reference" checked><span
+              class="radio-custom">Reference Images</span></label>
+          <label class="radio-label"><input type="radio" name="imageCategory" value="designed"><span
+              class="radio-custom">I Designed</span></label>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Upload Image</label>
+          <div class="drop-zone"><span style="font-size:24px;display:block;margin-bottom:8px">🖼️</span>Drag & drop an
+            image</div>
+        </div>
+      </div>
+      <div id="input-design" class="input-section">
+        <div class="form-group"><label class="form-label">Figma/Design Link</label><input type="url" class="add-input"
+            placeholder="Paste Figma file URL..."></div>
+        <div class="form-group"><label class="form-label">Screenshot / Reference Image</label>
+          <div class="drop-zone"><span style="font-size:24px;display:block;margin-bottom:8px">✦</span>Drag & drop a screenshot or reference image</div>
+        </div>
+        <div class="form-group"><label class="form-label">Notes</label><input type="text" class="add-input"
+            placeholder="What do you like about this?"></div>
+      </div>
+      <div id="input-react" class="input-section">
+        <div class="form-group"><label class="form-label">Component Preview</label>
+          <div class="drop-zone"><span style="font-size:24px;display:block;margin-bottom:8px">🖼️</span>Drag & drop
+            preview image</div>
+        </div>
+        <div class="form-group"><label class="form-label">React Code</label><textarea class="add-textarea"
+            placeholder="Paste React JSX/TSX here..."></textarea></div>
+      </div>
+      <div id="input-docs" class="input-section">
+        <div class="form-group"><label class="form-label">Google Docs Link</label><input type="url" class="add-input"
+            placeholder="Paste Google Docs URL..."></div>
+        <div
+          style="text-align: center; margin: 16px 0; color: var(--muted); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">
+          — Or —</div>
+        <div class="form-group"><label class="form-label">Upload Document</label>
+          <div class="drop-zone"><span style="font-size:24px;display:block;margin-bottom:8px">📄</span>Drag & drop
+            (.docx, .txt)</div>
+        </div>
+      </div>
+      <div id="input-pdf" class="input-section">
+        <div class="form-group"><label class="form-label">Upload PDF</label>
+          <div class="drop-zone"><span style="font-size:24px;display:block;margin-bottom:8px">📑</span>Drag & drop a PDF
+            file</div>
+        </div>
+      </div>
+      <div id="input-md" class="input-section">
+        <div class="form-group"><label class="form-label">Upload Markdown</label>
+          <div class="drop-zone"><span style="font-size:24px;display:block;margin-bottom:8px">📝</span>Drag & drop a .md
+            file</div>
+        </div>
+      </div>
+      <div id="input-skills" class="input-section">
+        <div class="form-group"><label class="form-label">Skill Name</label><input type="text" class="add-input"
+            placeholder="e.g., UI/UX Design, React.js"></div>
+        <div class="form-group"><label class="form-label">Experience / Notes</label><input type="text" class="add-input"
+            placeholder="e.g., 3 years, advanced level..."></div>
+      </div>
+      <div id="input-zip" class="input-section">
+        <div class="form-group"><label class="form-label">Upload Archive</label>
+          <div class="drop-zone"><span style="font-size:24px;display:block;margin-bottom:8px">🗜️</span>Drag & drop a
+            .zip or .rar</div>
+        </div>
+      </div>
+
+      <button class="cta-btn" id="saveItemBtn" style="width:100%; justify-content:center; margin-top:24px;">Save to
+        Vault</button>
+    </div>
+  </div>
+
+  <!-- CUSTOM FOLDER PEEK MODAL -->
+  <div class="generic-overlay hidden" id="folderPeekOverlay">
+    <div class="generic-box" style="max-width:420px;width:92%;">
+      <button class="close-generic" id="closeFolderPeek">&times;</button>
+      <h2 class="modal-title" id="folderPeekTitle">📁 New Folder</h2>
+      <div id="folderPeekList" style="margin-top:16px;display:flex;flex-direction:column;gap:10px;"></div>
+      <p id="folderPeekEmpty" style="color:var(--muted);font-size:13px;margin-top:16px;text-align:center;">Nothing here yet — save something to this folder!</p>
+    </div>
+  </div>
+  <div class="generic-overlay hidden" id="folderContentModal">
+    <div class="generic-box vault-directory-box">
+      <button class="close-generic">&times;</button>
+      <h2 class="modal-title">Vault Directory</h2>
+
+      <!-- Single scrollable content area containing all sections -->
+      <div class="vault-content-area">
+
+        <div id="content-docs" class="content-section active">
+          <div class="file-grid">
+            <div class="grid-card" onclick="speak('Downloading Project_Specs.docx! 📥')">
+              <div class="grid-card-actions">
+                <button class="action-btn like-btn" onclick="toggleHeart(this, event)" title="Like">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path
+                      d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+                  </svg>
+                </button>
+                <button class="action-btn dl-btn" onclick="downloadItem(event)" title="Download">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" x2="12" y1="15" y2="3" />
+                  </svg>
+                </button>
+              </div>
+              <div class="grid-card-img-wrap">
+                <div class="grid-card-icon">📄</div>
+              </div>
+              <div class="grid-card-title">Project_Specs.docx</div>
+            </div>
+            <div class="grid-card" onclick="speak('Downloading Design_System.pdf! 📥')">
+              <div class="grid-card-actions">
+                <button class="action-btn like-btn" onclick="toggleHeart(this, event)" title="Like">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path
+                      d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+                  </svg>
+                </button>
+                <button class="action-btn dl-btn" onclick="downloadItem(event)" title="Download">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" x2="12" y1="15" y2="3" />
+                  </svg>
+                </button>
+              </div>
+              <div class="grid-card-img-wrap">
+                <div class="grid-card-icon">📑</div>
+              </div>
+              <div class="grid-card-title">Design_System.pdf</div>
+            </div>
+            <div class="grid-card" onclick="speak('Downloading Assets_Bundle.zip! 📥')">
+              <div class="grid-card-actions">
+                <button class="action-btn like-btn" onclick="toggleHeart(this, event)" title="Like">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path
+                      d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+                  </svg>
+                </button>
+                <button class="action-btn dl-btn" onclick="downloadItem(event)" title="Download">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" x2="12" y1="15" y2="3" />
+                  </svg>
+                </button>
+              </div>
+              <div class="grid-card-img-wrap">
+                <div class="grid-card-icon">🗜️</div>
+              </div>
+              <div class="grid-card-title">Assets_Bundle.zip</div>
+            </div>
+          </div>
+        </div>
+
+        <div id="content-images" class="content-section">
+          <div class="file-grid">
+            <div class="grid-card"
+              onclick="openFullscreen('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1200&auto=format&fit=crop')">
+              <div class="grid-card-actions">
+                <button class="action-btn like-btn" onclick="toggleHeart(this, event)" title="Like">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path
+                      d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+                  </svg>
+                </button>
+                <button class="action-btn dl-btn" onclick="downloadItem(event)" title="Download">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" x2="12" y1="15" y2="3" />
+                  </svg>
+                </button>
+              </div>
+              <div class="grid-card-img-wrap">
+                <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop"
+                  class="grid-card-thumb">
+              </div>
+              <div class="grid-card-title">Dashboard_ref.png</div>
+            </div>
+            <div class="grid-card"
+              onclick="openFullscreen('https://images.unsplash.com/photo-1682687981907-170c006e3744?q=80&w=1200&auto=format&fit=crop')">
+              <div class="grid-card-actions">
+                <button class="action-btn like-btn" onclick="toggleHeart(this, event)" title="Like">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path
+                      d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+                  </svg>
+                </button>
+                <button class="action-btn dl-btn" onclick="downloadItem(event)" title="Download">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" x2="12" y1="15" y2="3" />
+                  </svg>
+                </button>
+              </div>
+              <div class="grid-card-img-wrap">
+                <img src="https://images.unsplash.com/photo-1682687981907-170c006e3744?q=80&w=600&auto=format&fit=crop"
+                  class="grid-card-thumb">
+              </div>
+              <div class="grid-card-title">Hero_concept.jpg</div>
+            </div>
+            <div class="grid-card"
+              onclick="openFullscreen('https://images.unsplash.com/photo-1633356122544-f134324a6cee?q=80&w=1200&auto=format&fit=crop')">
+              <div class="grid-card-actions">
+                <button class="action-btn like-btn" onclick="toggleHeart(this, event)" title="Like">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path
+                      d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+                  </svg>
+                </button>
+                <button class="action-btn dl-btn" onclick="downloadItem(event)" title="Download">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" x2="12" y1="15" y2="3" />
+                  </svg>
+                </button>
+              </div>
+              <div class="grid-card-img-wrap">
+                <img src="https://images.unsplash.com/photo-1633356122544-f134324a6cee?q=80&w=600&auto=format&fit=crop"
+                  class="grid-card-thumb">
+              </div>
+              <div class="grid-card-title">Gradient_study.jpg</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Design Refs section -->
+        <div id="content-design" class="content-section">
+          <div class="file-grid">
+            <div class="grid-card" onclick="speak('Opening Figma design! ✦')">
+              <div class="grid-card-actions">
+                <button class="action-btn like-btn" onclick="toggleHeart(this, event)" title="Like">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+                </button>
+                <button class="action-btn copy-btn" onclick="copyCardContent(this, event)" title="Copy Link">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                </button>
+              </div>
+              <div class="grid-card-img-wrap">
+                <img src="https://images.unsplash.com/photo-1561070791-2526d30994b5?q=80&w=600&auto=format&fit=crop" class="grid-card-thumb">
+              </div>
+              <div class="grid-card-title">Design System v2</div>
+            </div>
+            <div class="grid-card" onclick="speak('Opening Figma prototype! ✦')">
+              <div class="grid-card-actions">
+                <button class="action-btn like-btn" onclick="toggleHeart(this, event)" title="Like">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+                </button>
+                <button class="action-btn dl-btn" onclick="downloadItem(event)" title="Download">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                </button>
+              </div>
+              <div class="grid-card-img-wrap">
+                <img src="https://images.unsplash.com/photo-1542744094-3a31f272c490?q=80&w=600&auto=format&fit=crop" class="grid-card-thumb">
+              </div>
+              <div class="grid-card-title">Dashboard Prototype</div>
+            </div>
+          </div>
+        </div>
+
+        <div id="content-prompts" class="content-section">
+          <div class="file-grid">
+            <div class="grid-card"
+              onclick="copyPrompt('Hyper-realistic portrait of a cyberpunk character, neon lighting, highly detailed, 8k, cinematic...')">
+              <div class="grid-card-actions">
+                <button class="action-btn like-btn" onclick="toggleHeart(this, event)" title="Like">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path
+                      d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+                  </svg>
+                </button>
+                <button class="action-btn copy-btn" onclick="copyCardContent(this, event)" title="Copy">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                  </svg>
+                </button>
+              </div>
+              <div class="grid-card-img-wrap">
+                <img src="https://images.unsplash.com/photo-1682687981907-170c006e3744?q=80&w=600&auto=format&fit=crop"
+                  class="grid-card-thumb">
+              </div>
+              <div class="grid-card-title">Midjourney Portraits v4</div>
+            </div>
+            <div class="grid-card"
+              onclick="copyPrompt('Abstract geometric shapes floating in a soft studio lighting, glassmorphism, pastel colors...')">
+              <div class="grid-card-actions">
+                <button class="action-btn like-btn" onclick="toggleHeart(this, event)" title="Like">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path
+                      d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+                  </svg>
+                </button>
+                <button class="action-btn copy-btn" onclick="copyCardContent(this, event)" title="Copy">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                  </svg>
+                </button>
+              </div>
+              <div class="grid-card-img-wrap">
+                <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop"
+                  class="grid-card-thumb">
+              </div>
+              <div class="grid-card-title">UI Component structure</div>
+            </div>
+          </div>
+        </div>
+
+        <div id="content-react" class="content-section">
+          <div class="file-grid">
+            <div class="grid-card"
+              onclick="copyPrompt('export default function GlassCard() {\n  return (\n    <div className=\'bg-white/10 backdrop-blur-lg border border-white/20 p-6 rounded-2xl\'>\n      <h3 className=\'text-white text-xl\'>Glass</h3>\n    </div>\n  );\n}')">
+              <div class="grid-card-actions">
+                <button class="action-btn like-btn" onclick="toggleHeart(this, event)" title="Like">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path
+                      d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+                  </svg>
+                </button>
+                <button class="action-btn copy-btn" onclick="copyCardContent(this, event)" title="Copy">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                  </svg>
+                </button>
+              </div>
+              <div class="grid-card-img-wrap">
+                <img src="https://images.unsplash.com/photo-1633356122544-f134324a6cee?q=80&w=600&auto=format&fit=crop"
+                  class="grid-card-thumb">
+              </div>
+              <div class="grid-card-title">Glassmorphism Card</div>
+            </div>
+          </div>
+        </div>
+
+        <div id="content-links" class="content-section">
+          <div class="file-grid">
+            <div class="grid-card" onclick="speak('Opening Stripe Landing Page! 🌐')">
+              <div class="grid-card-actions">
+                <button class="action-btn like-btn" onclick="toggleHeart(this, event)" title="Like">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path
+                      d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+                  </svg>
+                </button>
+                <button class="action-btn copy-btn" onclick="copyCardContent(this, event)" title="Copy">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                  </svg>
+                </button>
+              </div>
+              <div class="grid-card-img-wrap">
+                <img src="https://images.unsplash.com/photo-1481481322814-3d9016e2b6db?q=80&w=600&auto=format&fit=crop"
+                  class="grid-card-thumb">
+              </div>
+              <div class="grid-card-title">Stripe Landing Page</div>
+            </div>
+          </div>
+        </div>
+
+        <div id="content-md" class="content-section">
+          <div class="file-grid">
+            <div class="grid-card" onclick="speak('Downloading Readme.md! 📥')">
+              <div class="grid-card-actions">
+                <button class="action-btn like-btn" onclick="toggleHeart(this, event)" title="Like">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path
+                      d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+                  </svg>
+                </button>
+                <button class="action-btn dl-btn" onclick="downloadItem(event)" title="Download">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" x2="12" y1="15" y2="3" />
+                  </svg>
+                </button>
+              </div>
+              <div class="grid-card-img-wrap">
+                <div class="grid-card-icon">📝</div>
+              </div>
+              <div class="grid-card-title">Readme.md</div>
+            </div>
+            <div class="grid-card" onclick="speak('Downloading API_Docs.md! 📥')">
+              <div class="grid-card-actions">
+                <button class="action-btn like-btn" onclick="toggleHeart(this, event)" title="Like">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path
+                      d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+                  </svg>
+                </button>
+                <button class="action-btn dl-btn" onclick="downloadItem(event)" title="Download">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" x2="12" y1="15" y2="3" />
+                  </svg>
+                </button>
+              </div>
+              <div class="grid-card-img-wrap">
+                <div class="grid-card-icon">📝</div>
+              </div>
+              <div class="grid-card-title">API_Docs.md</div>
+            </div>
+            <div class="grid-card" onclick="speak('Downloading Dev_Logs_May.md! 📥')">
+              <div class="grid-card-actions">
+                <button class="action-btn like-btn" onclick="toggleHeart(this, event)" title="Like">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path
+                      d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+                  </svg>
+                </button>
+                <button class="action-btn dl-btn" onclick="downloadItem(event)" title="Download">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" x2="12" y1="15" y2="3" />
+                  </svg>
+                </button>
+              </div>
+              <div class="grid-card-img-wrap">
+                <div class="grid-card-icon">📝</div>
+              </div>
+              <div class="grid-card-title">Dev_Logs_May.md</div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- end .vault-content-area -->
+
+      <!-- Vault Dock Navigation - sits as flex footer -->
+      <nav class="vault-dock">
+        <button class="dock-item active" data-content="docs"><span class="dock-icon">📄</span> Docs</button>
+        <button class="dock-item" data-content="images"><span class="dock-icon">🖼️</span> Images</button>
+        <button class="dock-item" data-content="design"><span class="dock-icon">✦</span> Design</button>
+        <button class="dock-item" data-content="prompts"><span class="dock-icon">💬</span> Prompts</button>
+        <button class="dock-item" data-content="react"><span class="dock-icon">⚛️</span> React</button>
+        <button class="dock-item" data-content="links"><span class="dock-icon">🔗</span> Sites</button>
+        <button class="dock-item" data-content="md"><span class="dock-icon">📝</span> Lists</button>
+      </nav>
+    </div>
+  </div>
+
+  <!-- FULLSCREEN IMAGE VIEWER -->
+  <div class="fullscreen-overlay hidden" id="fullscreenModal">
+    <button class="fullscreen-close" id="closeFullscreenBtn">&times;</button>
+    <img src="" class="fullscreen-img" id="fullscreenImg">
+  </div>
+
+  <!-- VAULT SPIRIT -->
+  <div class="vault-pet-wrapper">
+    <div class="pet-container" id="vaultPet">
+      <div class="pet-speech" id="petSpeech">Pixel perfect. 😉</div>
+      <div style="display: flex; align-items: flex-end; gap: 8px;">
+        <img class="pet-avatar" id="petMew"
+          src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/151.gif"
+          alt="Mew" title="Mew">
+        <img class="pet-avatar" id="petGengar"
+          src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/94.gif"
+          alt="Gengar" title="Gengar">
+        <img class="pet-avatar" id="petSnorlax"
+          src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/143.gif"
+          alt="Snorlax" title="Snorlax">
+        <img class="pet-avatar" id="petGreninja" src="https://play.pokemonshowdown.com/sprites/ani/greninja.gif"
+          alt="Greninja" title="Greninja">
+        <img class="pet-avatar" id="petPsyduck"
+          src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/54.gif"
+          alt="Psyduck" title="Psyduck">
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ══════════════ CANVAS VIEWPORT ══════════════ -->
+  <main id="viewport" class="viewport">
+    <div id="workspace" class="workspace">
+      <div class="canvas-content">
+
+        <!-- HERO CANVAS WIDGET -->
+        <section class="hero" id="home">
+          <div class="node" style="top:11%;left:16%;animation-delay:0.05s" data-depth="0.3">
+            <div class="node-inner"><span class="node-title">your prompts.</span></div>
+          </div>
+          <div class="node" style="top:17%;left:57%;animation-delay:0.1s" data-depth="0.15">
+            <div class="node-inner"><span class="node-title node-underline">your images.</span></div>
+          </div>
+          <div class="node" style="top:26%;left:25%;max-width:220px;animation-delay:0.12s" data-depth="0.4">
+            <div class="node-inner">
+              <p class="node-muted">reminder: save it now<br>or lose it forever.</p>
+              <p class="node-blue" style="margin-top:6px">capture everything.</p>
+            </div>
+          </div>
+          <div class="node" style="top:13%;left:82%;animation-delay:0.15s" data-depth="0.2">
+            <div class="node-inner"><span class="node-title">private.</span></div>
+          </div>
+          <div class="node" style="top:28%;left:79%;animation-delay:0.18s" data-depth="0.5">
+            <div class="node-inner"><span class="node-muted">design refs.</span></div>
+          </div>
+          <div class="node" style="top:63%;left:5%;animation-delay:0.2s" data-depth="0.25">
+            <div class="node-inner"><span class="node-muted">don't <span class="strike">lose</span> it again.</span>
+            </div>
+          </div>
+          <div class="node" style="top:70%;left:27%;animation-delay:0.22s" data-depth="0.1">
+            <div class="node-inner">
+              <h3 style="font-size:15px;font-weight:600;margin-bottom:10px;" class="node-underline">organize</h3>
+              <ul class="node-small" style="list-style:none;line-height:2.2">
+                <li>a.&nbsp; boards &amp; collections</li>
+                <li>b.&nbsp; tags &amp; categories</li>
+                <li>c.&nbsp; full-text search</li>
+              </ul>
+            </div>
+          </div>
+          <div class="node" style="top:74%;left:55%;animation-delay:0.25s" data-depth="0.35">
+            <div class="node-inner">
+              <h3 style="font-size:15px;font-weight:600;line-height:1.4;margin-bottom:6px;" class="node-underline">
+                import your<br>existing docs</h3>
+              <p class="node-small" style="margin-top:8px">.docx and .pdf — auto-indexed</p>
+            </div>
+          </div>
+          <div class="node" style="top:56%;left:82%;animation-delay:0.28s" data-depth="0.15">
+            <div class="node-inner"><span class="node-title">one vault.</span></div>
+          </div>
+
+          <!-- ── DEFAULT FOLDER ── -->
+          <div class="folder-stage">
+            <div class="folder" id="mainFolderBtn">
+              <div class="folder__back">
+                <div class="paper">💬 prompts</div>
+                <div class="paper">🖼️ images</div>
+                <div class="paper">✦ design</div>
+                <div class="folder__front"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ══ CARD STACKS ══ -->
+          <div class="card-stack stack-1" data-depth="0.2">
+            <div class="icard icard-cream">
+              <div class="card-illo"><svg viewBox="0 0 52 52" class="illo-stroke">
+                  <rect x="10" y="14" width="32" height="26" rx="3" />
+                  <line x1="16" y1="21" x2="36" y2="21" />
+                  <line x1="16" y1="27" x2="30" y2="27" />
+                  <line x1="16" y1="33" x2="26" y2="33" />
+                </svg></div>
+              <div class="card-title">Midjourney editorial v4</div>
+              <div class="card-by">PROMPT · CLAUDE</div>
+            </div>
+            <div class="icard icard-blue">
+              <div class="card-illo"><svg viewBox="0 0 52 52" class="illo-stroke">
+                  <circle cx="26" cy="20" r="9" />
+                  <path d="M12 42c0-7.7 6.3-14 14-14s14 6.3 14 14" />
+                  <circle cx="26" cy="20" r="3" fill="currentColor" stroke="none" />
+                </svg></div>
+              <div class="card-title">Improvised starts lead to early ends</div>
+              <div class="card-by">BY ROB MC MACKIN</div>
+            </div>
+            <div class="icard icard-white">
+              <div class="card-illo"><svg viewBox="0 0 52 52" class="illo-stroke">
+                  <path d="M18 26 l4 4 l12-12" />
+                  <circle cx="26" cy="26" r="14" />
+                </svg></div>
+              <div class="card-tag">✦ Design ref</div>
+              <div class="card-title">Interface Friends landing</div>
+              <div class="card-by">FROM LAPA NINJA</div>
+            </div>
+          </div>
+
+          <div class="card-stack stack-2" data-depth="0.3">
+            <div class="icard icard-white" style="width:190px">
+              <div class="card-illo"><svg viewBox="0 0 52 52" class="illo-stroke">
+                  <circle cx="20" cy="22" r="6" />
+                  <circle cx="30" cy="22" r="6" />
+                  <circle cx="25" cy="32" r="6" />
+                  <circle cx="16" cy="34" r="4" stroke-dasharray="2 2" />
+                  <circle cx="35" cy="31" r="4" stroke-dasharray="2 2" />
+                </svg></div>
+              <div class="card-title">The craft of your most valuable assets, people.</div>
+              <div class="card-by">BY LAURE ALBOUY</div>
+            </div>
+            <div class="icard icard-blue" style="width:190px">
+              <div class="card-illo"><svg viewBox="0 0 52 52" class="illo-stroke">
+                  <path d="M26 38 V18" />
+                  <path d="M20 24 L26 18 L32 24" />
+                  <rect x="18" y="10" width="16" height="8" rx="2" />
+                  <line x1="14" y1="38" x2="38" y2="38" />
+                </svg></div>
+              <div class="card-title">Say it before it's too late</div>
+              <div class="card-by">INSPIRATION · SAVED</div>
+            </div>
+          </div>
+
+          <div class="card-stack stack-3" data-depth="0.15">
+            <div class="icard icard-cream" style="width:185px">
+              <div class="card-illo"><svg viewBox="0 0 52 52" class="illo-stroke">
+                  <rect x="14" y="10" width="24" height="32" rx="3" />
+                  <line x1="19" y1="18" x2="33" y2="18" />
+                  <line x1="19" y1="24" x2="33" y2="24" />
+                  <line x1="19" y1="30" x2="27" y2="30" />
+                  <path d="M29 36 l4-4 l4 4" />
+                </svg></div>
+              <div class="card-title">World-building notes v2</div>
+              <div class="card-by">DOCUMENT · IMPORTED</div>
+            </div>
+            <div class="icard icard-white" style="width:185px">
+              <div class="card-illo"><svg viewBox="0 0 52 52" class="illo-stroke">
+                  <path d="M15 38 Q26 14 37 38" />
+                  <circle cx="26" cy="30" r="4" />
+                  <line x1="22" y1="34" x2="30" y2="34" />
+                </svg></div>
+              <div class="card-tag">📑 PDF</div>
+              <div class="card-title">Design systems research</div>
+              <div class="card-by">34 PAGES · INDEXED</div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- ── INTERACTIVE SCRIPTS ── -->
+  <script type="module">
+    import { vaultAPI } from './convex-api.js';
+    document.addEventListener('DOMContentLoaded', () => {
+
+      // 1. Magnetic Buttons
+      const magnets = document.querySelectorAll('.magnetic');
+      magnets.forEach(magnet => {
+        magnet.addEventListener('mousemove', function (e) {
+          const rect = this.getBoundingClientRect();
+          const x = e.clientX - rect.left - rect.width / 2;
+          const y = e.clientY - rect.top - rect.height / 2;
+          const strength = this.getAttribute('data-strength') || 20;
+          this.style.transform = `translate(${(x / rect.width) * strength}px, ${(y / rect.height) * strength}px) scale(1.05) rotate(${(x / rect.width) * strength * 0.1}deg)`;
+        });
+        magnet.addEventListener('mouseleave', function () { this.style.transform = 'translate(0px, 0px) scale(1) rotate(0deg)'; });
+      });
+
+      // 2. Parallax Effects
+      let mouseX = window.innerWidth / 2; let mouseY = window.innerHeight / 2;
+      let pTargetX = 0; let pTargetY = 0;
+      const parallaxNodes = document.querySelectorAll('.node, .card-stack');
+
+      document.addEventListener('mousemove', (e) => { mouseX = e.clientX; mouseY = e.clientY; });
+
+      function animateParallax() {
+        pTargetX += ((mouseX - window.innerWidth / 2) / 100 - pTargetX) * 0.1;
+        pTargetY += ((mouseY - window.innerHeight / 2) / 100 - pTargetY) * 0.1;
+        parallaxNodes.forEach(node => {
+          const depth = node.getAttribute('data-depth') || 0.2;
+          node.style.transform = `translate(${pTargetX * (depth * 20)}px, ${pTargetY * (depth * 20)}px)`;
+        });
+        requestAnimationFrame(animateParallax);
+      }
+      animateParallax();
+
+
+      // 3. Canvas Tools & Panning Setup
+      const viewport = document.getElementById('viewport');
+      const workspace = document.getElementById('workspace');
+      let currentTool = 'pointer'; let isPanning = false; let panX = 0; let panY = 0; let startX = 0; let startY = 0;
+
+      function setTool(tool) {
+        currentTool = tool;
+        document.querySelectorAll('.canvas-tools .tool-btn').forEach(btn => btn.classList.remove('active'));
+        if (tool !== 'add') document.getElementById(tool + 'Btn').classList.add('active');
+        viewport.style.cursor = tool === 'hand' ? 'grab' : (tool === 'text' ? 'text' : (tool === 'folder' || tool === 'tile' ? 'crosshair' : 'default'));
+      }
+
+      ['pointer', 'hand', 'text', 'folder', 'tile'].forEach(t => document.getElementById(t + 'Btn').addEventListener('click', () => setTool(t)));
+
+      window.addEventListener('keydown', (e) => {
+        if (document.activeElement.tagName === 'INPUT' || document.activeElement.isContentEditable || document.activeElement.tagName === 'TEXTAREA') return;
+        if (e.code === 'Space' && currentTool !== 'hand') { e.preventDefault(); viewport.style.cursor = 'grab'; }
+        else if (e.key === '/') {
+          e.preventDefault();
+          document.getElementById('searchModal').classList.remove('hidden');
+          setTimeout(() => document.getElementById('searchInput').focus(), 100);
+          speak("Let's find something! 🔍");
+        }
+        else if (e.key.toLowerCase() === 'h') setTool('hand');
+        else if (e.key.toLowerCase() === 'v') setTool('pointer');
+        else if (e.key.toLowerCase() === 't') setTool('text');
+        else if (e.key.toLowerCase() === 'f') setTool('folder');
+        else if (e.key.toLowerCase() === 'c') setTool('tile');
+      });
+
+      window.addEventListener('keyup', (e) => {
+        if (e.code === 'Space' && document.activeElement.tagName !== 'INPUT' && currentTool !== 'hand') { setTool(currentTool); isPanning = false; }
+      });
+
+      viewport.addEventListener('mousedown', (e) => {
+        if (currentTool === 'text' || currentTool === 'folder' || currentTool === 'tile') return;
+        const isSpaceHeld = viewport.style.cursor === 'grab' || viewport.style.cursor === 'grabbing';
+        if (currentTool !== 'hand' && !isSpaceHeld && e.button !== 1) return;
+
+        // Prevents text and objects from being highlighted while dragging
+        e.preventDefault();
+        document.body.style.userSelect = 'none';
+
+        isPanning = true; startX = e.clientX - panX; startY = e.clientY - panY; viewport.style.cursor = 'grabbing';
+        document.body.classList.add('dragging-state');
+      });
+
+      window.addEventListener('mousemove', (e) => {
+        if (!isPanning) return;
+        panX = e.clientX - startX; panY = e.clientY - startY;
+        workspace.style.transform = `translate(calc(-50% + ${panX}px), calc(-50% + ${panY}px))`;
+        viewport.style.backgroundPosition = `calc(50% + ${panX}px) calc(50% + ${panY}px)`;
+      });
+
+      window.addEventListener('mouseup', () => {
+        document.body.classList.remove('dragging-state');
+        if (isPanning) {
+          isPanning = false;
+          viewport.style.cursor = currentTool === 'hand' ? 'grab' : 'default';
+          // Restores standard text selection when you stop dragging
+          document.body.style.userSelect = '';
+        }
+      });
+
+      // 4. Canvas Creation Logic
+      viewport.addEventListener('click', (e) => {
+        if (e.target.closest('.generic-overlay') || e.target.closest('.canvas-tools') || e.target.closest('.hero-title') ||
+          e.target.closest('.hero-cta') || e.target.closest('.vault-pet-wrapper') || e.target.closest('.toast') ||
+          e.target.closest('.folder') || e.target.closest('.delete-btn') || e.target.closest('nav')) return;
+        if (isPanning) return;
+
+        if (currentTool === 'text' || currentTool === 'folder' || currentTool === 'tile') {
+          const rect = workspace.getBoundingClientRect();
+          const x = e.clientX - rect.left; const y = e.clientY - rect.top;
+
+          if (currentTool === 'text') createTextNode(x, y);
+          if (currentTool === 'folder') createFolderNode(x, y);
+          if (currentTool === 'tile') createTileNode(x, y);
+          setTool('pointer');
+        }
+      });
+
+      function createTextNode(x, y) {
+        const wrapper = document.createElement('div'); wrapper.className = 'custom-text-wrapper'; wrapper.style.left = `${x}px`; wrapper.style.top = `${y}px`;
+        const textEl = document.createElement('div'); textEl.className = 'custom-text'; textEl.contentEditable = true; textEl.innerText = 'New Text';
+        const delBtn = document.createElement('button'); delBtn.className = 'delete-btn'; delBtn.innerHTML = '×';
+        delBtn.onclick = (e) => { e.stopPropagation(); wrapper.remove(); speak("Poof! Gone. 💨"); };
+        wrapper.appendChild(textEl); wrapper.appendChild(delBtn); workspace.appendChild(wrapper);
+        textEl.focus(); document.execCommand('selectAll', false, null); speak("A new thought! 📝");
+      }
+
+      // ── Custom folder registry: folderId → [{label, icon, value, cardId}]
+      const folderRegistry = new Map();
+      let cardCounter = 0;
+
+      function createFolderNode(x, y) {
+        const folderId = 'folder-' + Date.now();
+        folderRegistry.set(folderId, []);
+
+        const fw = document.createElement('div'); fw.className = 'custom-folder'; fw.style.left = `${x}px`; fw.style.top = `${y}px`;
+        fw.dataset.folderId = folderId;
+        fw.innerHTML = `<button class="delete-btn">×</button><div class="folder mini-folder"><div class="folder__back"><div class="folder__front"></div></div></div><div class="folder-label" contenteditable="true">New Folder</div>`;
+
+        const select = document.getElementById('folderSelect');
+        const option = document.createElement('option');
+        option.value = folderId;
+        option.text = '📁 New Folder';
+        option.dataset.folderId = folderId;
+        select.appendChild(option);
+
+        // ── Create a tab + section in vault directory for this folder ──
+        const vaultDock = document.querySelector('#folderContentModal .vault-dock');
+        const vaultContent = document.querySelector('#folderContentModal .vault-content-area');
+
+        const dockTab = document.createElement('button');
+        dockTab.className = 'dock-item';
+        dockTab.dataset.content = folderId;
+        dockTab.dataset.folderId = folderId;
+        dockTab.innerHTML = `<span class="dock-icon">📁</span> <span class="dock-tab-label">New Folder</span>`;
+        vaultDock.appendChild(dockTab);
+
+        // wire this new tab into the existing tab switching logic
+        dockTab.addEventListener('click', () => {
+          document.querySelectorAll('#folderContentModal .dock-item').forEach(t => t.classList.remove('active'));
+          dockTab.classList.add('active');
+          document.querySelectorAll('#folderContentModal .content-section').forEach(s => s.classList.remove('active'));
+          document.getElementById('content-' + folderId).classList.add('active');
+        });
+
+        const contentSection = document.createElement('div');
+        contentSection.id = 'content-' + folderId;
+        contentSection.className = 'content-section';
+        contentSection.innerHTML = `<div class="file-grid" id="grid-${folderId}"></div><p id="empty-${folderId}" style="text-align:center;color:var(--muted);font-size:13px;padding:40px 20px;">Nothing saved here yet!</p>`;
+        vaultContent.appendChild(contentSection);
+
+        // Open peek popup on folder click (but not delete or label)
+        fw.querySelector('.folder').addEventListener('click', (e) => {
+          e.stopPropagation();
+          const labelText = fw.querySelector('.folder-label').innerText.trim() || 'New Folder';
+          openFolderPeek(folderId, labelText);
+        });
+
+        fw.querySelector('.delete-btn').onclick = (e) => {
+          e.stopPropagation();
+          fw.remove();
+          folderRegistry.delete(folderId);
+          const opt = select.querySelector(`option[data-folder-id="${folderId}"]`);
+          if (opt) opt.remove();
+          dockTab.remove();
+          contentSection.remove();
+          speak("Folder deleted! 🗑️");
+        };
+
+        const label = fw.querySelector('.folder-label');
+        label.addEventListener('blur', () => {
+          const newName = label.innerText.trim() || 'New Folder';
+          const opt = select.querySelector(`option[data-folder-id="${folderId}"]`);
+          if (opt) opt.text = '📁 ' + newName;
+          // sync dock tab label
+          const tabLabel = dockTab.querySelector('.dock-tab-label');
+          if (tabLabel) tabLabel.textContent = newName;
+        });
+
+        workspace.appendChild(fw);
+        label.focus();
+        document.execCommand('selectAll', false, null);
+        speak("Space for new refs! 📁");
+      }
+
+      function openFolderPeek(folderId, folderName) {
+        const overlay = document.getElementById('folderPeekOverlay');
+        document.getElementById('folderPeekTitle').textContent = '📁 ' + folderName;
+        overlay.dataset.activeFolderId = folderId;
+        renderFolderPeek(folderId);
+        overlay.classList.remove('hidden');
+        speak(`Peeking into ${folderName}! 📂`);
+      }
+
+      function renderFolderPeek(folderId) {
+        const list = document.getElementById('folderPeekList');
+        const empty = document.getElementById('folderPeekEmpty');
+        const items = folderRegistry.get(folderId) || [];
+        list.innerHTML = '';
+        if (items.length === 0) {
+          empty.style.display = 'block';
+        } else {
+          empty.style.display = 'none';
+          items.forEach((item, idx) => {
+            const row = document.createElement('div');
+            row.style.cssText = 'display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:12px;background:var(--glass-bg);border:1px solid var(--border);';
+            row.innerHTML = `
+              <span style="font-size:22px;flex-shrink:0">${item.icon}</span>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${item.label}</div>
+                <div style="font-size:11px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${item.value || '—'}</div>
+              </div>
+              <button title="Remove" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:18px;flex-shrink:0;transition:color 0.2s;" data-idx="${idx}">×</button>
+            `;
+            row.querySelector('button').addEventListener('click', () => {
+              // Remove card from vault directory too
+              const cardId = item.cardId;
+              if (cardId) {
+                const vaultCard = document.getElementById(cardId);
+                if (vaultCard) vaultCard.remove();
+              }
+              items.splice(idx, 1);
+              // update vault empty state
+              updateVaultEmpty(folderId);
+              renderFolderPeek(folderId);
+            });
+            list.appendChild(row);
+          });
+        }
+      }
+
+      function updateVaultEmpty(folderId) {
+        const grid = document.getElementById('grid-' + folderId);
+        const empty = document.getElementById('empty-' + folderId);
+        if (!grid || !empty) return;
+        empty.style.display = grid.children.length === 0 ? 'block' : 'none';
+      }
+
+      function addCardToVaultSection(folderId, item) {
+        const grid = document.getElementById('grid-' + folderId);
+        const empty = document.getElementById('empty-' + folderId);
+        if (!grid) return;
+        empty.style.display = 'none';
+
+        const cardId = 'vault-card-' + (++cardCounter);
+        item.cardId = cardId;
+
+        const card = document.createElement('div');
+        card.className = 'grid-card';
+        card.id = cardId;
+        card.innerHTML = `
+          <div class="grid-card-actions">
+            <button class="action-btn like-btn" onclick="toggleHeart(this,event)" title="Like">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+            </button>
+            <button class="action-btn" title="Remove" onclick="removeVaultCard('${cardId}','${folderId}',event)" style="font-size:14px;">×</button>
+          </div>
+          <div class="grid-card-img-wrap">
+            <div class="grid-card-icon" style="height:120px;font-size:40px">${item.icon}</div>
+          </div>
+          <div class="grid-card-title">${item.label}${item.value ? ': ' + item.value.slice(0,28) + (item.value.length>28?'...':'') : ''}</div>
+        `;
+        grid.appendChild(card);
+      }
+
+      window.removeVaultCard = function(cardId, folderId, event) {
+        event.stopPropagation();
+        const card = document.getElementById(cardId);
+        if (card) card.remove();
+        // also remove from registry
+        const items = folderRegistry.get(folderId) || [];
+        const idx = items.findIndex(i => i.cardId === cardId);
+        if (idx !== -1) items.splice(idx, 1);
+        updateVaultEmpty(folderId);
+        speak('Removed! 🗑️');
+      };
+
+      document.getElementById('closeFolderPeek').addEventListener('click', () => {
+        document.getElementById('folderPeekOverlay').classList.add('hidden');
+      });
+      document.getElementById('folderPeekOverlay').addEventListener('click', (e) => {
+        if (e.target === document.getElementById('folderPeekOverlay'))
+          document.getElementById('folderPeekOverlay').classList.add('hidden');
+      });
+
+      function createTileNode(x, y) {
+        const tw = document.createElement('div'); tw.className = 'custom-tile-wrapper'; tw.style.left = `${x}px`; tw.style.top = `${y}px`;
+        tw.innerHTML = `<button class="delete-btn">×</button><div class="icard icard-white"><div class="card-illo"><svg viewBox="0 0 52 52" class="illo-stroke"><circle cx="20" cy="22" r="6"/><circle cx="30" cy="22" r="6"/><circle cx="25" cy="32" r="6"/><circle cx="16" cy="34" r="4" stroke-dasharray="2 2"/><circle cx="35" cy="31" r="4" stroke-dasharray="2 2"/></svg></div><div class="card-title" contenteditable="true" spellcheck="false">New Concept</div><div class="card-by" contenteditable="true" spellcheck="false">BY CREATOR</div></div>`;
+        tw.querySelector('.delete-btn').onclick = (e) => { e.stopPropagation(); tw.remove(); speak("Tile discarded! 🎴"); };
+        workspace.appendChild(tw); tw.querySelector('.card-title').focus(); document.execCommand('selectAll', false, null); speak("A fresh tile! 🎴");
+      }
+
+      function createDocNode(x, y, url, title = 'Document') {
+        const dw = document.createElement('div');
+        dw.className = 'doc-node-wrapper';
+        // Account for canvas pan offset so node appears near viewport center
+        dw.style.left = `${x - 160}px`;
+        dw.style.top = `${y - 120}px`;
+
+        // Convert to preview link if it's a Google Doc
+        let embedUrl = url;
+        if (url.includes('docs.google.com/document/d/')) {
+          embedUrl = url.replace(/\/edit.*$/, '/preview').replace(/\/view.*$/, '/preview');
+        } else if (url.match(/\.(docx|doc|pdf)$/i)) {
+          embedUrl = `https://docs.google.com/gview?url=${encodeURIComponent(url)}&embedded=true`;
+        }
+
+        dw.innerHTML = `
+      <button class="delete-btn">×</button>
+      <div class="doc-card">
+        <div class="doc-header">
+          <div class="doc-title-pill" contenteditable="true" spellcheck="false">${title}</div>
+        </div>
+        <div class="doc-iframe-container">
+          <iframe class="doc-iframe" src="${embedUrl}"></iframe>
+        </div>
+      </div>
+    `;
+        dw.querySelector('.delete-btn').onclick = (e) => { e.stopPropagation(); dw.remove(); speak("Document removed! 📄"); };
+        workspace.appendChild(dw);
+        speak("Document embedded! 📄");
+      }
+
+      // Node Dragging Logic
+      let activeDragNode = null;
+      let nodeStartX = 0, nodeStartY = 0, mouseStartX = 0, mouseStartY = 0;
+
+      document.addEventListener('mousedown', (e) => {
+        // Add dragging state when interacting with card edges/header
+        if (e.target.closest('.doc-card')) {
+          document.body.classList.add('dragging-state');
+        }
+
+        const header = e.target.closest('.doc-header');
+        if (header && !e.target.closest('.doc-title-pill')) {
+          // Prevent drag conflict if panning tool or space is active
+          const isSpaceHeld = viewport.style.cursor === 'grab' || viewport.style.cursor === 'grabbing';
+          if (currentTool === 'hand' || isSpaceHeld || e.button === 1) return;
+
+          e.preventDefault(); // Prevents browser text-selection auto-scroll bug
+          document.body.style.userSelect = 'none';
+
+          activeDragNode = header.closest('.doc-node-wrapper');
+          mouseStartX = e.clientX;
+          mouseStartY = e.clientY;
+          nodeStartX = parseFloat(activeDragNode.style.left) || 0;
+          nodeStartY = parseFloat(activeDragNode.style.top) || 0;
+          activeDragNode.style.zIndex = 100;
+        }
+      });
+
+      document.addEventListener('mousemove', (e) => {
+        if (activeDragNode) {
+          const dx = e.clientX - mouseStartX;
+          const dy = e.clientY - mouseStartY;
+          activeDragNode.style.left = `${nodeStartX + dx}px`;
+          activeDragNode.style.top = `${nodeStartY + dy}px`;
+        }
+      });
+
+      document.addEventListener('mouseup', () => {
+        if (activeDragNode) {
+          activeDragNode.style.zIndex = '';
+          activeDragNode = null;
+          document.body.style.userSelect = '';
+        }
+        document.body.classList.remove('dragging-state');
+      });
+
+      // 5. Companion Pet Logic
+      const petSpeech = document.getElementById('petSpeech');
+      const phrases = ["Pixel perfect. 😉", "Your canvas looks infinite!", "Press T to write!", "Press F to organize!", "Press C to drop a tile!", "Flawless composition ✨", "Creative OS online."];
+
+      window.speak = function (customText = null) {
+        petSpeech.textContent = customText || phrases[Math.floor(Math.random() * phrases.length)];
+        petSpeech.classList.add('show');
+        if (window.petSpeechTimer) clearTimeout(window.petSpeechTimer);
+        window.petSpeechTimer = setTimeout(() => petSpeech.classList.remove('show'), 3000);
+      };
+
+      document.getElementById('petMew').addEventListener('click', () => speak("Mew! I love good UI! ✨"));
+      document.getElementById('petGengar').addEventListener('click', () => speak("Gengar! 👻"));
+      document.getElementById('petSnorlax').addEventListener('click', () => speak("Snorlax... zzz... 💤"));
+      document.getElementById('petGreninja').addEventListener('click', () => speak("Ninja! 🥷"));
+      document.getElementById('petPsyduck').addEventListener('click', () => speak("Psy... duck? 🦆"));
+
+      setInterval(() => { if (Math.random() > 0.7 && !petSpeech.classList.contains('show')) speak(); }, 10000);
+      setTimeout(() => speak("Hi! We're your Canvas Spirits!"), 1500);
+
+      // Theme Toggle Logic
+      const themeToggle = document.getElementById('themeToggle');
+      themeToggle.addEventListener('click', () => {
+        document.body.classList.toggle('dark-theme');
+        if (document.body.classList.contains('dark-theme')) {
+          themeToggle.textContent = '☀️';
+          speak("Dark mode engaged! 🌙");
+        } else {
+          themeToggle.textContent = '🌙';
+          speak("Back to the light! ☀️");
+        }
+      });
+
+      // 6. Generic Modal Handlers
+      document.querySelectorAll('.close-generic').forEach(btn => btn.addEventListener('click', (e) => {
+        const overlay = e.target.closest('.generic-overlay');
+        overlay.classList.add('hidden');
+
+        // Automatically close the canvas folder when closing the folder modal
+        if (overlay.id === 'folderContentModal') {
+          document.getElementById('mainFolderBtn').classList.remove('open');
+        }
+      }));
+
+      // Close overlays when clicking outside the box (except the mandatory login modal)
+      document.querySelectorAll('.generic-overlay').forEach(overlay => {
+        overlay.addEventListener('click', (e) => {
+          if (e.target === overlay && overlay.id !== 'loginModal') {
+            overlay.classList.add('hidden');
+            if (overlay.id === 'folderContentModal') {
+              document.getElementById('mainFolderBtn').classList.remove('open');
+            }
+          }
+        });
+      });
+
+      // Toast Close Handler Fix (Using proper event listener)
+      document.getElementById('toastCloseBtn').addEventListener('click', (e) => {
+        e.preventDefault();
+        document.getElementById('toast').classList.add('hidden');
+      });
+
+      // 7. Modals: Login & Storage
+      let isLoggedIn = false;
+      const loginModal = document.getElementById('loginModal');
+      const storageModal = document.getElementById('storageModal');
+      const googleLoginBtn = document.getElementById('googleLoginBtn');
+      const vaultTriggers = document.querySelectorAll('.vault-trigger');
+
+      vaultTriggers.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          if (!isLoggedIn) {
+            loginModal.classList.remove('hidden');
+            speak("Security check! Identify yourself. 🕵️‍♀️");
+          } else {
+            storageModal.classList.remove('hidden');
+            speak("Checking Vault capacity! ☁️");
+          }
+        });
+      });
+
+      googleLoginBtn.addEventListener('click', () => {
+        const originalContent = googleLoginBtn.innerHTML;
+        googleLoginBtn.innerHTML = '<span class="auth-loader"></span> Authenticating...';
+        googleLoginBtn.style.pointerEvents = 'none';
+
+        setTimeout(() => {
+          googleLoginBtn.innerHTML = originalContent;
+          googleLoginBtn.style.pointerEvents = 'auto';
+          loginModal.classList.add('hidden');
+          isLoggedIn = true;
+          speak("Welcome back, Creator! 🎉");
+
+          const toast = document.getElementById('toast');
+          toast.classList.remove('hidden');
+          toast.querySelector('.toast-message').innerHTML = `System Auth: <span class="toast-highlight">Vault Unlocked</span>`;
+
+          vaultTriggers.forEach(btn => {
+            btn.innerText = "Vault Unlocked 🔓";
+            btn.style.background = "var(--blue)";
+            btn.style.color = "var(--white)";
+          });
+        }, 1500);
+      });
+
+      // 8. Modals: Boards & Search
+      document.getElementById('navBoards').addEventListener('click', (e) => {
+        e.preventDefault();
+        document.getElementById('boardsModal').classList.remove('hidden');
+        speak("Looking at your collections! 📁");
+      });
+
+      document.getElementById('navSearch').addEventListener('click', (e) => {
+        e.preventDefault();
+        document.getElementById('searchModal').classList.remove('hidden');
+        setTimeout(() => document.getElementById('searchInput').focus(), 100);
+        speak("Let's find something! 🔍");
+      });
+
+      // Search filtering: collect all grid-card titles as searchable items
+      const searchInput = document.getElementById('searchInput');
+      const searchResults = document.getElementById('searchResults');
+      const searchResultsLabel = document.getElementById('searchResultsLabel');
+      const recentSearchChips = document.getElementById('recentSearchChips');
+
+      searchInput.addEventListener('input', () => {
+        const q = searchInput.value.trim().toLowerCase();
+        searchResults.innerHTML = '';
+        if (!q) {
+          searchResultsLabel.textContent = 'Recent Searches';
+          recentSearchChips.style.display = 'flex';
+          return;
+        }
+        searchResultsLabel.textContent = 'Results';
+        recentSearchChips.style.display = 'none';
+        // Gather all grid-card titles from the vault directory
+        const allCards = document.querySelectorAll('#folderContentModal .grid-card');
+        let count = 0;
+        allCards.forEach(card => {
+          const titleEl = card.querySelector('.grid-card-title');
+          if (!titleEl) return;
+          const title = titleEl.textContent.trim();
+          if (title.toLowerCase().includes(q)) {
+            const row = document.createElement('div');
+            row.style.cssText = 'display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;background:var(--glass-bg);border:1px solid var(--border);cursor:pointer;';
+            row.innerHTML = `<span style="font-size:18px">📄</span><span style="font-size:13px;font-weight:500;">${title}</span>`;
+            row.onclick = () => { speak(`Found: ${title}! 🔍`); document.getElementById('searchModal').classList.add('hidden'); };
+            searchResults.appendChild(row);
+            count++;
+          }
+        });
+        if (count === 0) {
+          searchResults.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:8px 0;">No matches found</div>';
+        }
+      });
+
+      // 9. Modals: Add Item
+      const addModal = document.getElementById('addModal');
+
+      // Clipboard paste detection: auto-fill the active input when the modal opens
+      document.getElementById('addBtn').addEventListener('click', async () => {
+        addModal.classList.remove('hidden');
+        speak("What are we saving today? ✨");
+        // Try to read clipboard and pre-fill
+        try {
+          const text = await navigator.clipboard.readText();
+          if (!text) return;
+          const activeSection = addModal.querySelector('.input-section.active');
+          if (!activeSection) return;
+          const textarea = activeSection.querySelector('textarea');
+          const urlInput = activeSection.querySelector('input[type="url"]');
+          const textInput = activeSection.querySelector('input[type="text"]');
+          if (textarea && !textarea.value) { textarea.value = text; speak("Pasted from clipboard! 📋"); }
+          else if (urlInput && !urlInput.value && (text.startsWith('http://') || text.startsWith('https://'))) { urlInput.value = text; speak("URL detected from clipboard! 🔗"); }
+          else if (textInput && !textInput.value) { textInput.value = text; speak("Pasted from clipboard! 📋"); }
+        } catch (_) { /* clipboard access denied — silent */ }
+      });
+
+      // Also detect paste events globally when the modal is open
+      addModal.addEventListener('paste', async (e) => {
+        const text = e.clipboardData?.getData('text') || '';
+        if (!text) return;
+        const activeSection = addModal.querySelector('.input-section.active');
+        if (!activeSection) return;
+        // Only auto-route if nothing is currently focused inside
+        if (activeSection.contains(document.activeElement)) return;
+        e.preventDefault();
+        const textarea = activeSection.querySelector('textarea');
+        const urlInput = activeSection.querySelector('input[type="url"]');
+        const textInput = activeSection.querySelector('input[type="text"]');
+        if (textarea) { textarea.value = text; textarea.focus(); speak("Pasted! 📋"); }
+        else if (urlInput) { urlInput.value = text; urlInput.focus(); speak("Pasted! 📋"); }
+        else if (textInput) { textInput.value = text; textInput.focus(); speak("Pasted! 📋"); }
+      });
+
+      const addTypeTabs = addModal.querySelectorAll('.type-tab');
+      const addInputSections = addModal.querySelectorAll('.input-section');
+      addTypeTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          addTypeTabs.forEach(t => t.classList.remove('active')); tab.classList.add('active');
+          addInputSections.forEach(sec => sec.classList.remove('active')); document.getElementById('input-' + tab.dataset.type).classList.add('active');
+          const select = document.getElementById('folderSelect');
+          if (tab.dataset.type === 'prompt') select.value = 'prompts';
+          else if (tab.dataset.type === 'image') select.value = 'images';
+          else if (tab.dataset.type === 'design') select.value = 'design';
+          else if (tab.dataset.type === 'link') select.value = 'links';
+          else if (tab.dataset.type === 'react') select.value = 'react';
+          else select.value = 'general';
+        });
+      });
+
+      const saveItemBtn = document.getElementById('saveItemBtn');
+      saveItemBtn.addEventListener('click', async () => {
+        const originalText = saveItemBtn.innerText;
+        saveItemBtn.innerHTML = '<span class="auth-loader" style="border-top-color:white;"></span> Saving...';
+        saveItemBtn.style.pointerEvents = 'none';
+
+        try {
+          const activeTabType = addModal.querySelector('.type-tab.active').dataset.type;
+          const activeTab = addModal.querySelector('.type-tab.active').innerText;
+          const folderSel = document.getElementById('folderSelect');
+          const folderVal = folderSel.value;
+          const folder = folderSel.options[folderSel.selectedIndex].text;
+          const activeSection = document.getElementById('input-' + activeTabType);
+
+          let content = '', title = '', notes = '';
+
+          // Extract data from the active UI pane
+          if (activeTabType === 'prompt' || activeTabType === 'react') {
+            content = activeSection.querySelector('textarea')?.value || '';
+          } else if (activeTabType === 'link' || activeTabType === 'docs') {
+            content = activeSection.querySelector('input[type="url"]')?.value || '';
+          } else if (activeTabType === 'skills') {
+            title = activeSection.querySelectorAll('input')[0]?.value || '';
+            notes = activeSection.querySelectorAll('input')[1]?.value || '';
+          } else if (activeTabType === 'design') {
+            content = activeSection.querySelector('input[type="url"]')?.value || '';
+            notes = activeSection.querySelector('input[type="text"]')?.value || '';
+          }
+
+          // Call Convex Backend
+          await vaultAPI.saveData({
+            type: activeTabType,
+            folder: folderVal,
+            title: title || `${activeTabType} Item`,
+            content: content,
+            notes: notes
+          });
+
+          // ── Store in custom folder registry if it's a canvas folder ──
+          if (folderRegistry.has(folderVal)) {
+            const val = (content || title || notes).trim();
+            const iconMap = { Prompt:'💬', Link:'🔗', Image:'🖼️', Design:'✦', React:'⚛️', Docs:'📄', PDF:'📑', MD:'📝', Skills:'🧠', ZIP:'🗜️' };
+            const icon = iconMap[activeTab] || '📁';
+            const item = { label: activeTab, icon, value: val };
+            folderRegistry.get(folderVal).push(item);
+            addCardToVaultSection(folderVal, item);
+          }
+
+          // Add Docs to Canvas
+          if (activeTabType === 'docs') {
+            const docInput = document.querySelector('#input-docs input[type="url"]');
+            if (docInput && docInput.value) {
+              const rect = workspace.getBoundingClientRect();
+              const centerX = (window.innerWidth / 2) - rect.left;
+              const centerY = (window.innerHeight / 2) - rect.top;
+              createDocNode(centerX, centerY, docInput.value, 'New Document');
+            }
+          }
+
+          // Reset UI state
+          saveItemBtn.innerText = originalText;
+          saveItemBtn.style.pointerEvents = 'auto';
+          addModal.classList.add('hidden');
+
+          // Show Toast
+          const toast = document.getElementById('toast');
+          toast.classList.remove('hidden');
+          toast.querySelector('.toast-message').innerHTML = `Saved to <span class="toast-highlight">${folder}</span>`;
+          speak(`Stored safely in ${folder}! 📂`);
+
+          // Clear inputs
+          if (activeSection) {
+            activeSection.querySelectorAll('input, textarea').forEach(el => el.value = '');
+          }
+
+        } catch (error) {
+          console.error('Failed to save:', error);
+          saveItemBtn.innerText = 'Error — Try Again';
+          saveItemBtn.style.pointerEvents = 'auto';
+        }
+      });
+
+      // 10. Folder Content Modal
+      const folderContentModal = document.getElementById('folderContentModal');
+      const mainFolderBtn = document.getElementById('mainFolderBtn');
+
+      mainFolderBtn.addEventListener('click', () => {
+        mainFolderBtn.classList.add('open');
+        setTimeout(() => {
+          folderContentModal.classList.remove('hidden');
+          speak("Opening the main directory! 📂");
+        }, 300);
+      });
+
+      const folderTabs = folderContentModal.querySelectorAll('.dock-item');
+      const folderSections = folderContentModal.querySelectorAll('.content-section');
+
+      folderTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          folderTabs.forEach(t => t.classList.remove('active')); tab.classList.add('active');
+          folderSections.forEach(sec => sec.classList.remove('active')); document.getElementById('content-' + tab.dataset.content).classList.add('active');
+        });
+      });
+
+      // 11. Image Viewer & Copy Functionality
+      const fullscreenModal = document.getElementById('fullscreenModal');
+      const fullscreenImg = document.getElementById('fullscreenImg');
+
+      window.openFullscreen = function (src) {
+        fullscreenImg.src = src;
+        fullscreenModal.classList.remove('hidden');
+        speak("Taking a closer look! 🔍");
+      };
+
+      document.getElementById('closeFullscreenBtn').addEventListener('click', () => {
+        fullscreenModal.classList.add('hidden');
+      });
+
+      fullscreenModal.addEventListener('click', (e) => {
+        if (e.target === fullscreenModal) fullscreenModal.classList.add('hidden');
+      });
+
+      window.copyPrompt = function (text) {
+        // Hidden textarea fallback for iframes (ensures smooth copying)
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
+          document.execCommand('copy');
+          const toast = document.getElementById('toast');
+          toast.classList.remove('hidden');
+          toast.querySelector('.toast-message').innerHTML = `Prompt <span class="toast-highlight">Copied</span> to clipboard!`;
+          speak("Copied to clipboard! 📋");
+        } catch (err) {
+          console.error('Failed to copy', err);
+        }
+        document.body.removeChild(textarea);
+      };
+
+      window.toggleHeart = function (btn, event) {
+        event.stopPropagation();
+        btn.classList.toggle('active');
+        const isFilled = btn.classList.contains('active');
+        if (isFilled) {
+          speak('Added to favorites! ❤️');
+        } else {
+          speak('Removed from favorites');
+        }
+      };
+
+      window.downloadItem = function (event) {
+        event.stopPropagation();
+        speak('Downloading item! 📥');
+      };
+
+      window.copyCardContent = function (btn, event) {
+        event.stopPropagation();
+        const card = btn.closest('.grid-card');
+        if (card && card.hasAttribute('onclick')) {
+          const clickStr = card.getAttribute('onclick');
+          if (clickStr.includes('copyPrompt')) {
+            card.click();
+          } else {
+            const title = card.querySelector('.grid-card-title').innerText;
+            if (title.includes('Stripe')) {
+              window.copyPrompt('https://stripe.com');
+            } else {
+              window.copyPrompt(title);
+            }
+          }
+        }
+      };
+
+      // Wire drag-and-drop feedback for all drop zones (click does NOT open file picker)
+      document.querySelectorAll('.drop-zone').forEach(zone => {
+        zone.addEventListener('click', e => e.preventDefault()); // block file-picker on click
+
+        zone.addEventListener('dragover', e => {
+          e.preventDefault();
+          zone.classList.add('drag-over');
+        });
+        zone.addEventListener('dragleave', () => {
+          zone.classList.remove('drag-over');
+        });
+        zone.addEventListener('drop', e => {
+          e.preventDefault();
+          zone.classList.remove('drag-over');
+          const files = e.dataTransfer.files;
+          if (files.length > 0) {
+            zone.innerHTML = `<span style="font-size:24px;display:block;margin-bottom:8px">✅</span><strong>${files[0].name}</strong> ready`;
+            speak(`${files[0].name} dropped! 📂`);
+          }
+        });
+      });
+
+    });
+  </script>
+
+</body>
+
+</html>

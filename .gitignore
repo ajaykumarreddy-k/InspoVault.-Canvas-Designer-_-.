@@ -1,0 +1,19 @@
+# ── Secrets — NEVER commit these ──
+.env
+.env.local
+.env*.local
+
+# Google Service Account JSON keys
+inspovault-*.json
+*-service-account*.json
+*credentials*.json
+
+# Convex generated files
+convex/_generated/
+
+# Node
+node_modules/
+
+# OS
+.DS_Store
+Thumbs.db

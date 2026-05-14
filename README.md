@@ -150,3 +150,4 @@ Personal - Vault/
 | Auth | Google Service Account |
 | Fonts | Google Fonts (Google Sans, Outfit) |
 # InspoVault.-Canvas-Designer-_-.
+# InspoVault.-Canvas-Designer-_-.

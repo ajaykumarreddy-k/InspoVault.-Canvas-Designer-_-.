@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "@googleapis/drive": "^20.1.0",
+    "@supabase/supabase-js": "^2.105.4",
+    "convex": "^1.38.0",
+    "google-auth-library": "^10.6.2"
+  }
+}
