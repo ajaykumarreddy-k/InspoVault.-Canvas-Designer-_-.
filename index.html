@@ -16,6 +16,17 @@
   <script>
     // ── Replace with your actual Google OAuth Web Client ID ──
     window.GOOGLE_CLIENT_ID = "16388795387-o2sn381p50cdinv0bn1l6agrj4b8lbgd.apps.googleusercontent.com";
+    
+    // Define the callback synchronously so Google's script can always find it
+    window._googleCredentialResolver = null;
+    window._googleCredentialPromise = new Promise(resolve => {
+      window._googleCredentialResolver = resolve;
+    });
+    window.handleGoogleCredential = function(response) {
+      const statusEl = document.getElementById('authStatus');
+      if (statusEl) statusEl.textContent = 'Verifying…';
+      window._googleCredentialResolver(response);
+    };
   </script>
   <style>
     :root {
@@ -2904,9 +2915,8 @@
       }
     }
 
-    // Called by Google Identity Services when user completes sign-in
-    window.handleGoogleCredential = async function(response) {
-      document.getElementById('authStatus').textContent = 'Verifying…';
+    // Process the credential when it's received from the sync callback in the <head>
+    window._googleCredentialPromise.then(async (response) => {
       try {
         const result = await vaultAPI.verifyAuth(response.credential);
         if (result.allowed) {
@@ -2919,7 +2929,7 @@
         console.error('Auth error:', err);
         document.getElementById('authStatus').textContent = 'Something went wrong. Try again.';
       }
-    };
+    });
 
     // Sign-out — accessible globally for the userChip button
     window.vaultSignOut = function() {
