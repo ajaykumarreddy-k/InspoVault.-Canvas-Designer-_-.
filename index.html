@@ -2848,7 +2848,7 @@
 
   <!-- ── INTERACTIVE SCRIPTS ── -->
   <script type="module">
-    import { vaultAPI } from './convex-api.js';
+    // vaultAPI is dynamically imported at the bottom to catch loading errors.
 
     // ── Global State ──────────────────────────────────────────────────────────
     window.currentUserEmail = null;
@@ -2915,28 +2915,37 @@
       }
     }
 
-    document.getElementById('authStatus').textContent = 'Module loaded. Waiting for Google...';
+    // We use a dynamic import to catch module-loading failures (like Brave blocking the CDN)
+    document.getElementById('authStatus').textContent = 'Module loading...';
+    
+    import('./convex-api.js').then((module) => {
+      const vaultAPI = module.vaultAPI;
+      document.getElementById('authStatus').textContent = 'Module loaded. Waiting for Google...';
 
-    // Process the credential when it's received from the sync callback in the <head>
-    window._googleCredentialPromise.then(async (response) => {
-      document.getElementById('authStatus').textContent = 'Step 1: Credential received. Connecting to backend...';
-      try {
-        if (!vaultAPI || !vaultAPI.verifyAuth) throw new Error("vaultAPI not loaded properly");
-        
-        const result = await vaultAPI.verifyAuth(response.credential);
-        document.getElementById('authStatus').textContent = 'Step 2: Backend responded.';
-        
-        if (result.allowed) {
-          document.getElementById('authStatus').textContent = 'Step 3: Allowed. Loading canvas...';
-          storeSession(result);
-          await showCanvas(result);
-        } else {
-          showDenied(result.email, result.error);
+      // Process the credential when it's received from the sync callback in the <head>
+      window._googleCredentialPromise.then(async (response) => {
+        document.getElementById('authStatus').textContent = 'Step 1: Credential received. Connecting to backend...';
+        try {
+          if (!vaultAPI || !vaultAPI.verifyAuth) throw new Error("vaultAPI not loaded properly");
+          
+          const result = await vaultAPI.verifyAuth(response.credential);
+          document.getElementById('authStatus').textContent = 'Step 2: Backend responded.';
+          
+          if (result.allowed) {
+            document.getElementById('authStatus').textContent = 'Step 3: Allowed. Loading canvas...';
+            storeSession(result);
+            await showCanvas(result);
+          } else {
+            showDenied(result.email, result.error);
+          }
+        } catch (err) {
+          console.error('Auth error:', err);
+          document.getElementById('authStatus').textContent = `Error: ${err.message}`;
         }
-      } catch (err) {
-        console.error('Auth error:', err);
-        document.getElementById('authStatus').textContent = `Error: ${err.message}`;
-      }
+      });
+    }).catch(err => {
+      console.error('Module load error:', err);
+      document.getElementById('authStatus').textContent = `CRITICAL MODULE ERROR: ${err.message}`;
     });
 
     // Sign-out — accessible globally for the userChip button
