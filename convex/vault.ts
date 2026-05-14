@@ -18,7 +18,11 @@ const ALLOWED_EMAILS = [
 
 function getSupabase() {
   return createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_KEY!, {
-    auth: { persistSession: false }
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+      detectSessionInUrl: false
+    }
   });
 }
 
