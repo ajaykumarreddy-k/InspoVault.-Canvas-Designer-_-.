@@ -17,7 +17,9 @@ const ALLOWED_EMAILS = [
 // ── Lazy helpers ──────────────────────────────────────────────────────────────
 
 function getSupabase() {
-  return createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_KEY!);
+  return createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_KEY!, {
+    auth: { persistSession: false }
+  });
 }
 
 function getDriveService() {
