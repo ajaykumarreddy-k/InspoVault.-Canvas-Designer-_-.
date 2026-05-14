@@ -2922,28 +2922,28 @@
     }
 
     // Initialize backend connection
-    document.getElementById('authStatus').textContent = 'Loading vault backend...';
+    const statusEl = document.getElementById('authStatus');
+    statusEl.textContent = 'Loading vault backend...';
     
     import('./convex-api.js').then((module) => {
       window.vaultAPI = module.vaultAPI;
-      document.getElementById('authStatus').textContent = ''; // Clear status, ready for Google
+      statusEl.textContent = '✅ Backend Loaded. Please sign in.';
 
-      // If user was already logged in, restore canvas now that API is loaded
       const existingSession = getStoredSession();
-      if (existingSession) {
-        showCanvas(existingSession);
-      }
+      if (existingSession) showCanvas(existingSession);
 
-      // Process the credential when it's received from the sync callback in the <head>
       window._googleCredentialPromise.then(async (response) => {
-        document.getElementById('authStatus').textContent = 'Step 1: Contacting Vault servers...';
+        statusEl.textContent = '⏳ Step 1: Connecting to Convex...';
+        statusEl.style.color = '#f59e0b'; // Orange
+        
         try {
           if (!window.vaultAPI.verifyAuth) throw new Error("Auth API missing");
           
           const result = await window.vaultAPI.verifyAuth(response.credential);
           
           if (result.allowed) {
-            document.getElementById('authStatus').textContent = 'Step 2: Access Granted!';
+            statusEl.textContent = '✅ Step 2: Access Granted!';
+            statusEl.style.color = '#10b981'; // Green
             storeSession(result);
             await showCanvas(result);
           } else {
@@ -2951,12 +2951,16 @@
           }
         } catch (err) {
           console.error('Auth error:', err);
-          document.getElementById('authStatus').textContent = `System Error: ${err.message}`;
+          statusEl.textContent = `❌ System Error: ${err.message}`;
+          statusEl.style.color = '#ef4444'; // Red
+          alert(`Auth Error: ${err.message}`);
         }
       });
     }).catch(err => {
       console.error('Module load error:', err);
-      document.getElementById('authStatus').textContent = `CONNECTION ERROR: Could not reach backend. Turn off Brave Shields.`;
+      statusEl.textContent = `🚨 CRITICAL ERROR: Network blocked. Turn off Brave Shields.`;
+      statusEl.style.color = '#ef4444';
+      alert(`Critical Load Error: ${err.message}`);
     });
 
     // Sign-out — accessible globally for the userChip button
