@@ -198,3 +198,53 @@ export const verifyGoogleAuth = action({
   },
 });
 
+/** Verify email/password against Supabase Auth + Whitelist */
+export const verifyEmailAuth = action({
+  args: { email: v.string(), password: v.string() },
+  handler: async (_ctx, args) => {
+    try {
+      const email = args.email.toLowerCase();
+      
+      // 1. Check whitelist first
+      if (!ALLOWED_EMAILS.includes(email)) {
+        return { allowed: false, email, name: "", picture: "", error: "Email not authorized." };
+      }
+
+      // 2. Verify with Supabase Auth (or Magic Password fallback)
+      const supabase = getSupabase();
+      
+      // If the user provided the "magic password" (set in Convex env), allow them in
+      if (process.env.VAULT_PASSWORD && args.password === process.env.VAULT_PASSWORD) {
+        return {
+          allowed: true,
+          email,
+          name: email.split('@')[0],
+          picture: `https://ui-avatars.com/api/?name=${email}`,
+          error: null
+        };
+      }
+
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: args.password,
+      });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      const user = data.user;
+      return {
+        allowed: true,
+        email: user.email,
+        name: user.user_metadata?.full_name || user.email?.split('@')[0],
+        picture: user.user_metadata?.avatar_url || `https://ui-avatars.com/api/?name=${user.email}`,
+        error: null
+      };
+    } catch (err: any) {
+      console.error("Email auth failed:", err);
+      return { allowed: false, email: args.email, name: "", picture: "", error: err.message };
+    }
+  },
+});
+

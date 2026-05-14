@@ -2058,7 +2058,7 @@
     <div class="generic-box center">
       <div class="login-icon">🔐</div>
       <h2 class="login-title">Unlock Your Vault</h2>
-      <p class="login-sub">Enter a whitelisted email and the vault password (Kvr@6303945563) to gain access.</p>
+      <p class="login-sub">Enter a whitelisted email and your vault password to gain access.</p>
 
       <div class="login-form">
         <input type="email" id="modalEmail" class="login-input" placeholder="Email Address" required>
@@ -2907,15 +2907,12 @@
     statusEl.textContent = 'Initializing secure vault...';
     
     // Load both APIs
-    Promise.all([
-      import('./convex-api.js'),
-      import('./supabase-auth.js')
-    ]).then(([convexMod, authMod]) => {
+    import('./convex-api.js').then((convexMod) => {
       window.vaultAPI = convexMod.vaultAPI;
-      window.authAPI = authMod;
       
       statusEl.textContent = '✅ Vault Ready. Please sign in.';
 
+      const existingSession = getStoredSession();
       if (existingSession) {
         window.isLoggedIn = true;
         showCanvas(existingSession);
@@ -2929,22 +2926,21 @@
         btn.disabled = true;
         
         try {
-          const { user } = await authMod.signInWithEmail(email, password);
-          const allowed = await authMod.isEmailAllowed(user.email);
+          // Use Convex proxy for email/password auth
+          const result = await window.vaultAPI.verifyEmailAuth(email, password);
           
-          if (allowed) {
+          if (result.allowed) {
             const userData = {
-              email: user.email,
-              name: user.user_metadata?.full_name || user.email.split('@')[0],
-              picture: user.user_metadata?.avatar_url || 'https://ui-avatars.com/api/?name=' + user.email
+              email: result.email,
+              name: result.name,
+              picture: result.picture
             };
             storeSession(userData);
             window.isLoggedIn = true;
             await showCanvas(userData);
             if (window.refreshAuthUI) window.refreshAuthUI();
           } else {
-            showDenied(user.email);
-            await authMod.signOut();
+            showDenied(result.email, result.error);
           }
         } catch (err) {
           console.error('Login error:', err);

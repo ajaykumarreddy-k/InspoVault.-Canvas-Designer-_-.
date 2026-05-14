@@ -63,4 +63,11 @@ export const vaultAPI = {
       clientId: window.GOOGLE_CLIENT_ID
     });
   },
+
+  /**
+   * Verify an email/password via Convex (which proxies to Supabase).
+   */
+  verifyEmailAuth: async (email, password) => {
+    return await convex.action("vault:verifyEmailAuth", { email, password });
+  },
 };
