@@ -2054,7 +2054,7 @@
 =========================================== -->
 
   <!-- 1. LOGIN MODAL (Mandatory on load) -->
-  <div class="generic-overlay" id="loginModal">
+  <div class="generic-overlay hidden" id="loginModal">
     <div class="generic-box center">
       <div class="login-icon">🔐</div>
       <h2 class="login-title">Unlock Your Vault</h2>
@@ -2917,6 +2917,10 @@
         window.isLoggedIn = true;
         showCanvas(existingSession);
         setTimeout(() => { if (window.refreshAuthUI) window.refreshAuthUI(); }, 500);
+      } else {
+        // Show login prompt if not authenticated
+        const loginModal = document.getElementById('loginModal');
+        if (loginModal) loginModal.classList.remove('hidden');
       }
 
       // Handle Login Form Submission
