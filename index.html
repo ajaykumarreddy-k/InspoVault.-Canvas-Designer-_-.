@@ -2847,11 +2847,10 @@
   </main>
 
   <!-- ── INTERACTIVE SCRIPTS ── -->
-  <script type="module">
-    // vaultAPI is dynamically imported at the bottom to catch loading errors.
-
+  <script>
     // ── Global State ──────────────────────────────────────────────────────────
     window.currentUserEmail = null;
+    window.vaultAPI = null;
     let canvasSaveTimer = null;
     let workspaceObserver = null;
 
@@ -2883,10 +2882,17 @@
       document.getElementById('userAvatar').src = user.picture || '';
       document.getElementById('userName').textContent = user.name.split(' ')[0];
 
+      // Wait until vaultAPI is loaded before trying to restore canvas
+      if (!window.vaultAPI) {
+        console.warn('Waiting for vaultAPI to load...');
+      }
+
       // 1. Load user's canvas state
       try {
-        const saved = await vaultAPI.loadCanvas(user.email);
-        if (saved) window.restoreCanvas(saved);
+        if (window.vaultAPI) {
+          const saved = await window.vaultAPI.loadCanvas(user.email);
+          if (saved) window.restoreCanvas(saved);
+        }
       } catch (err) {
         console.warn('Canvas load failed (first visit or no save yet):', err);
       }
@@ -2915,24 +2921,29 @@
       }
     }
 
-    // We use a dynamic import to catch module-loading failures (like Brave blocking the CDN)
-    document.getElementById('authStatus').textContent = 'Module loading...';
+    // Initialize backend connection
+    document.getElementById('authStatus').textContent = 'Loading vault backend...';
     
     import('./convex-api.js').then((module) => {
-      const vaultAPI = module.vaultAPI;
-      document.getElementById('authStatus').textContent = 'Module loaded. Waiting for Google...';
+      window.vaultAPI = module.vaultAPI;
+      document.getElementById('authStatus').textContent = ''; // Clear status, ready for Google
+
+      // If user was already logged in, restore canvas now that API is loaded
+      const existingSession = getStoredSession();
+      if (existingSession) {
+        showCanvas(existingSession);
+      }
 
       // Process the credential when it's received from the sync callback in the <head>
       window._googleCredentialPromise.then(async (response) => {
-        document.getElementById('authStatus').textContent = 'Step 1: Credential received. Connecting to backend...';
+        document.getElementById('authStatus').textContent = 'Step 1: Contacting Vault servers...';
         try {
-          if (!vaultAPI || !vaultAPI.verifyAuth) throw new Error("vaultAPI not loaded properly");
+          if (!window.vaultAPI.verifyAuth) throw new Error("Auth API missing");
           
-          const result = await vaultAPI.verifyAuth(response.credential);
-          document.getElementById('authStatus').textContent = 'Step 2: Backend responded.';
+          const result = await window.vaultAPI.verifyAuth(response.credential);
           
           if (result.allowed) {
-            document.getElementById('authStatus').textContent = 'Step 3: Allowed. Loading canvas...';
+            document.getElementById('authStatus').textContent = 'Step 2: Access Granted!';
             storeSession(result);
             await showCanvas(result);
           } else {
@@ -2940,27 +2951,21 @@
           }
         } catch (err) {
           console.error('Auth error:', err);
-          document.getElementById('authStatus').textContent = `Error: ${err.message}`;
+          document.getElementById('authStatus').textContent = `System Error: ${err.message}`;
         }
       });
     }).catch(err => {
       console.error('Module load error:', err);
-      document.getElementById('authStatus').textContent = `CRITICAL MODULE ERROR: ${err.message}`;
+      document.getElementById('authStatus').textContent = `CONNECTION ERROR: Could not reach backend. Turn off Brave Shields.`;
     });
 
     // Sign-out — accessible globally for the userChip button
     window.vaultSignOut = function() {
       localStorage.removeItem(SESSION_KEY);
-      google?.accounts?.id?.disableAutoSelect();
+      if (typeof google !== 'undefined') google?.accounts?.id?.disableAutoSelect();
       window.location.reload();
     };
 
-    // On page load: check existing session first
-    const existingSession = getStoredSession();
-    if (existingSession) {
-      showCanvas(existingSession);
-    } else {
-    }
     // ─────────────────────────────────────────────────────────────────────────
 
     document.addEventListener('DOMContentLoaded', () => {
