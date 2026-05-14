@@ -10,6 +10,13 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Google+Sans:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400&family=Google+Sans+Display:ital,wght@0,400;0,700;1,400;1,700&family=Google+Sans+Text:wght@300;400;500&display=swap"
     rel="stylesheet">
+
+  <!-- Google Identity Services -->
+  <script src="https://accounts.google.com/gsi/client" async></script>
+  <script>
+    // ── Replace with your actual Google OAuth Web Client ID ──
+    window.GOOGLE_CLIENT_ID = "16388795387-o2sn381p50cdinv0bn1l6agrj4b8lbgd.apps.googleusercontent.com";
+  </script>
   <style>
     :root {
       --cream: #f5f0eb;
@@ -1923,6 +1930,49 @@
 
 <body>
 
+  <!-- ── AUTH GATE OVERLAY ─────────────────────────────────────── -->
+  <div id="authGate" style="
+    position:fixed;inset:0;z-index:99999;
+    background:var(--cream);
+    display:flex;align-items:center;justify-content:center;
+    flex-direction:column;gap:0;
+    font-family:'Google Sans',sans-serif;
+  ">
+    <!-- Login Card -->
+    <div id="authCard" style="
+      background:var(--white);border-radius:28px;
+      padding:48px 40px;width:380px;max-width:90vw;
+      box-shadow:0 32px 64px rgba(0,0,0,0.1),0 8px 24px rgba(0,0,0,0.06);
+      border:1px solid var(--border);text-align:center;
+    ">
+      <div style="font-size:48px;margin-bottom:16px">🗄️</div>
+      <h1 style="font-family:'Google Sans Display',sans-serif;font-size:26px;font-weight:700;color:var(--text);margin:0 0 8px">InspoVault</h1>
+      <p style="color:var(--muted);font-size:14px;margin:0 0 36px;line-height:1.6">Your private creative canvas.<br>Sign in to continue.</p>
+
+      <!-- Google Sign-In button rendered here by GSI -->
+      <div id="googleSignInBtn" style="display:flex;justify-content:center;margin-bottom:20px"></div>
+
+      <p id="authStatus" style="font-size:13px;color:var(--muted);margin:0;min-height:20px"></p>
+    </div>
+
+    <!-- Access Denied Card (hidden by default) -->
+    <div id="deniedCard" style="
+      display:none;
+      background:#fff0f0;border-radius:28px;
+      padding:40px 36px;width:380px;max-width:90vw;
+      box-shadow:0 16px 40px rgba(0,0,0,0.08);
+      border:1px solid rgba(220,50,50,0.15);text-align:center;margin-top:16px;
+    ">
+      <div style="font-size:40px;margin-bottom:12px">🚫</div>
+      <h2 style="font-size:18px;font-weight:700;color:#cc2200;margin:0 0 8px">Access Denied</h2>
+      <p id="deniedEmail" style="font-size:13px;color:#888;margin:0 0 20px"></p>
+      <button onclick="document.getElementById('deniedCard').style.display='none';document.getElementById('authCard').style.display='';" style="
+        background:#1a1a1a;color:#fff;border:none;border-radius:100px;
+        padding:10px 24px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Google Sans',sans-serif;
+      ">Try a different account</button>
+    </div>
+  </div>
+
   <!-- CANVAS TOOLS -->
   <div class="canvas-tools">
     <button class="tool-btn active" id="pointerBtn" title="Select (V)">↖</button>
@@ -1932,6 +1982,17 @@
     <button class="tool-btn" id="folderBtn" title="Add Folder (F)">📁</button>
     <button class="tool-btn" id="tileBtn" title="Add Tile (C)">🎴</button>
     <button class="tool-btn primary-add magnetic" id="addBtn" data-strength="15" title="Add Item">+</button>
+    <div class="tool-divider"></div>
+    <!-- Auth chip: shows after login -->
+    <button id="userChip" title="Sign out" onclick="vaultSignOut()" style="
+      display:none;align-items:center;gap:8px;padding:6px 12px 6px 6px;
+      background:var(--cream);border:1px solid var(--border);border-radius:100px;
+      cursor:pointer;font-family:'Google Sans',sans-serif;font-size:13px;
+      font-weight:500;color:var(--text);transition:all 0.2s;
+    ">
+      <img id="userAvatar" src="" style="width:24px;height:24px;border-radius:50%;object-fit:cover;" />
+      <span id="userName" style="max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+    </button>
   </div>
 
   <!-- NAV -->
@@ -2760,6 +2821,113 @@
   <!-- ── INTERACTIVE SCRIPTS ── -->
   <script type="module">
     import { vaultAPI } from './convex-api.js';
+
+    // ── Global State ──────────────────────────────────────────────────────────
+    window.currentUserEmail = null;
+    let canvasSaveTimer = null;
+    let workspaceObserver = null;
+
+    // ── AUTH GATE ─────────────────────────────────────────────────────────────
+    const SESSION_KEY = 'vault_session';
+    const SESSION_TTL = 24 * 60 * 60 * 1000; // 24 hours
+
+    function getStoredSession() {
+      try {
+        const raw = localStorage.getItem(SESSION_KEY);
+        if (!raw) return null;
+        const s = JSON.parse(raw);
+        if (Date.now() > s.expiresAt) { localStorage.removeItem(SESSION_KEY); return null; }
+        return s;
+      } catch { return null; }
+    }
+
+    function storeSession(data) {
+      localStorage.setItem(SESSION_KEY, JSON.stringify({
+        ...data, expiresAt: Date.now() + SESSION_TTL,
+      }));
+    }
+
+    async function showCanvas(user) {
+      window.currentUserEmail = user.email;
+      document.getElementById('authGate').style.display = 'none';
+      const chip = document.getElementById('userChip');
+      chip.style.display = 'flex';
+      document.getElementById('userAvatar').src = user.picture || '';
+      document.getElementById('userName').textContent = user.name.split(' ')[0];
+
+      // 1. Load user's canvas state
+      try {
+        const saved = await vaultAPI.loadCanvas(user.email);
+        if (saved) window.restoreCanvas(saved);
+      } catch (err) {
+        console.warn('Canvas load failed (first visit or no save yet):', err);
+      }
+
+      // 2. Start observing changes for auto-save
+      if (!workspaceObserver) {
+        workspaceObserver = new MutationObserver(window.triggerCanvasSave);
+        workspaceObserver.observe(document.getElementById('workspace'), { childList: true, subtree: false });
+        
+        // Also save on node drag end
+        document.addEventListener('mouseup', () => {
+          if (window.activeDragNode) window.triggerCanvasSave();
+        });
+      }
+    }
+
+    function showDenied(email) {
+      document.getElementById('authStatus').textContent = '';
+      document.getElementById('authCard').style.display = 'none';
+      document.getElementById('deniedCard').style.display = '';
+      document.getElementById('deniedEmail').textContent =
+        `${email} is not on the authorized list.`;
+    }
+
+    // Called by Google Identity Services when user completes sign-in
+    window.handleGoogleCredential = async function(response) {
+      document.getElementById('authStatus').textContent = 'Verifying…';
+      try {
+        const result = await vaultAPI.verifyAuth(response.credential);
+        if (result.allowed) {
+          storeSession(result);
+          await showCanvas(result);
+        } else {
+          showDenied(result.email);
+        }
+      } catch (err) {
+        console.error('Auth error:', err);
+        document.getElementById('authStatus').textContent = 'Something went wrong. Try again.';
+      }
+    };
+
+    // Sign-out — accessible globally for the userChip button
+    window.vaultSignOut = function() {
+      localStorage.removeItem(SESSION_KEY);
+      google?.accounts?.id?.disableAutoSelect();
+      window.location.reload();
+    };
+
+    // On page load: check existing session first
+    const existingSession = getStoredSession();
+    if (existingSession) {
+      showCanvas(existingSession);
+    } else {
+      // Wait for GSI to load, then render button
+      window.addEventListener('load', () => {
+        if (typeof google === 'undefined') return;
+        google.accounts.id.initialize({
+          client_id: window.GOOGLE_CLIENT_ID,
+          callback: handleGoogleCredential,
+          auto_select: false,
+        });
+        google.accounts.id.renderButton(
+          document.getElementById('googleSignInBtn'),
+          { theme: 'outline', size: 'large', shape: 'pill', width: 280 }
+        );
+      });
+    }
+    // ─────────────────────────────────────────────────────────────────────────
+
     document.addEventListener('DOMContentLoaded', () => {
 
       // 1. Magnetic Buttons
@@ -3533,27 +3701,151 @@
         }
       };
 
-      // Wire drag-and-drop feedback for all drop zones (click does NOT open file picker)
-      document.querySelectorAll('.drop-zone').forEach(zone => {
-        zone.addEventListener('click', e => e.preventDefault()); // block file-picker on click
+      // ── Helper: read a File as base64 ──────────────────────────────────────
+      function fileToBase64(file) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result.split(',')[1]); // strip data: prefix
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+      }
 
-        zone.addEventListener('dragover', e => {
-          e.preventDefault();
-          zone.classList.add('drag-over');
+      /** Determine vault type from MIME or extension */
+      function typeFromFile(file) {
+        const ext = file.name.split('.').pop().toLowerCase();
+        if (['png','jpg','jpeg','gif','webp','svg','avif'].includes(ext)) return 'image';
+        if (['pdf'].includes(ext)) return 'pdf';
+        if (['doc','docx','txt','md'].includes(ext)) return 'docs';
+        if (['zip','rar','tar','gz','7z'].includes(ext)) return 'zip';
+        return 'docs';
+      }
+
+      /** Upload a File object to Google Drive via Convex, return { driveFileId, viewUrl } */
+      async function uploadFileToDrive(file, type) {
+        const base64 = await fileToBase64(file);
+        return await vaultAPI.uploadFile(base64, file.name, file.type || 'application/octet-stream', type);
+      }
+
+      /** Show a drop zone as "uploading…" then done with Drive link */
+      function markZoneUploading(zone, filename) {
+        zone.innerHTML = `<span style="font-size:20px;display:block;margin-bottom:6px">⏳</span><strong>${filename}</strong><br><span style="font-size:12px;color:var(--muted)">Uploading to Drive…</span>`;
+      }
+      function markZoneDone(zone, filename, viewUrl) {
+        zone.innerHTML = `<span style="font-size:20px;display:block;margin-bottom:6px">✅</span><strong>${filename}</strong><br><a href="${viewUrl}" target="_blank" style="font-size:12px;color:var(--blue)">View on Drive ↗</a>`;
+        zone.dataset.driveUrl = viewUrl;
+      }
+      function markZoneError(zone, filename) {
+        zone.innerHTML = `<span style="font-size:20px;display:block;margin-bottom:6px">❌</span><strong>${filename}</strong> — upload failed`;
+      }
+
+      // ── Wire every drop zone: click → file picker, drag → upload ────────────
+      document.querySelectorAll('.drop-zone').forEach(zone => {
+        // Infer accepted types from parent input-section id
+        const section = zone.closest('.input-section');
+        const sectionId = section ? section.id : '';
+        const acceptMap = {
+          'input-image':  'image/*',
+          'input-prompt': 'image/*',
+          'input-link':   'image/*',
+          'input-design': 'image/*',
+          'input-react':  'image/*',
+          'input-docs':   '.pdf,.doc,.docx,.txt,.md',
+          'input-pdf':    '.pdf',
+          'input-md':     '.md,.txt',
+          'input-zip':    '.zip,.rar,.tar,.gz,.7z',
+        };
+        const accept = acceptMap[sectionId] || '*/*';
+
+        // Hidden file input
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.accept = accept;
+        fileInput.style.display = 'none';
+        zone.parentNode.appendChild(fileInput);
+
+        // Click opens picker
+        zone.style.cursor = 'pointer';
+        zone.addEventListener('click', () => fileInput.click());
+
+        // File selected via picker
+        fileInput.addEventListener('change', async () => {
+          const file = fileInput.files[0];
+          if (!file) return;
+          const type = typeFromFile(file);
+          markZoneUploading(zone, file.name);
+          try {
+            const result = await uploadFileToDrive(file, type);
+            markZoneDone(zone, file.name, result.viewUrl);
+            zone.dataset.driveFileId = result.driveFileId;
+            speak(`${file.name} saved to Drive! ☁️`);
+          } catch (err) {
+            console.error(err);
+            markZoneError(zone, file.name);
+          }
+          fileInput.value = '';
         });
-        zone.addEventListener('dragleave', () => {
-          zone.classList.remove('drag-over');
-        });
-        zone.addEventListener('drop', e => {
+
+        // Drag-over styling
+        zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+        zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+
+        // Drop → upload
+        zone.addEventListener('drop', async e => {
           e.preventDefault();
           zone.classList.remove('drag-over');
-          const files = e.dataTransfer.files;
-          if (files.length > 0) {
-            zone.innerHTML = `<span style="font-size:24px;display:block;margin-bottom:8px">✅</span><strong>${files[0].name}</strong> ready`;
-            speak(`${files[0].name} dropped! 📂`);
+          const file = e.dataTransfer.files[0];
+          if (!file) return;
+          const type = typeFromFile(file);
+          markZoneUploading(zone, file.name);
+          try {
+            const result = await uploadFileToDrive(file, type);
+            markZoneDone(zone, file.name, result.viewUrl);
+            zone.dataset.driveFileId = result.driveFileId;
+            speak(`${file.name} saved to Drive! ☁️`);
+          } catch (err) {
+            console.error(err);
+            markZoneError(zone, file.name);
           }
         });
       });
+
+      // ── Ctrl+V paste → image capture (active when Add modal is open) ────────
+      const addModal = document.getElementById('addModal');
+      window.addEventListener('paste', async (e) => {
+        if (!addModal || addModal.classList.contains('hidden')) return;
+        const items = Array.from(e.clipboardData?.items || []);
+        const imageItem = items.find(i => i.type.startsWith('image/'));
+        if (!imageItem) return;
+
+        const file = imageItem.getAsFile();
+        if (!file) return;
+
+        // Switch to the image tab
+        document.querySelectorAll('.type-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.input-section').forEach(s => s.classList.remove('active'));
+        const imgTab = document.querySelector('.type-tab[data-type="image"]');
+        const imgSection = document.getElementById('input-image');
+        if (imgTab) imgTab.classList.add('active');
+        if (imgSection) imgSection.classList.add('active');
+
+        // Show paste preview
+        const reader = new FileReader();
+        reader.onload = ev => {
+          const previewZone = imgSection?.querySelector('.drop-zone');
+          if (previewZone) {
+            previewZone.innerHTML = `
+              <img src="${ev.target.result}" style="max-width:100%;max-height:180px;border-radius:8px;margin-bottom:8px;object-fit:contain;" />
+              <span style="font-size:12px;color:var(--muted)">Pasted image — will upload on Save</span>`;
+            previewZone.dataset.pastedFile = 'pending';
+            previewZone._pastedFile = file; // store reference
+          }
+        };
+        reader.readAsDataURL(file);
+        speak('Image pasted! Hit Save to upload to Drive 🖼️');
+      });
+
+      // Canvas persistence functions were moved up to global window scope.
 
     });
   </script>
