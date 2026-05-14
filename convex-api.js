@@ -1,6 +1,7 @@
 import { ConvexClient } from "https://esm.sh/convex/browser";
 
-const CONVEX_URL = "https://dazzling-cassowary-803.convex.cloud";
+// Pointing to the production deployment that has the new auth logic
+const CONVEX_URL = "https://hardy-parrot-544.convex.cloud";
 const convex = new ConvexClient(CONVEX_URL);
 
 export const vaultAPI = {
