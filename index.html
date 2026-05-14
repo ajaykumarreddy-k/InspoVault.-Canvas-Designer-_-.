@@ -1949,8 +1949,25 @@
       <h1 style="font-family:'Google Sans Display',sans-serif;font-size:26px;font-weight:700;color:var(--text);margin:0 0 8px">InspoVault</h1>
       <p style="color:var(--muted);font-size:14px;margin:0 0 36px;line-height:1.6">Your private creative canvas.<br>Sign in to continue.</p>
 
-      <!-- Google Sign-In button rendered here by GSI -->
-      <div id="googleSignInBtn" style="display:flex;justify-content:center;margin-bottom:20px"></div>
+      <!-- Google Sign-In button rendered by HTML API -->
+      <div id="g_id_onload"
+         data-client_id="16388795387-o2sn381p50cdinv0bn1l6agrj4b8lbgd.apps.googleusercontent.com"
+         data-context="signin"
+         data-ux_mode="popup"
+         data-callback="handleGoogleCredential"
+         data-auto_prompt="false">
+      </div>
+
+      <div class="g_id_signin"
+         style="display:flex;justify-content:center;margin-bottom:20px"
+         data-type="standard"
+         data-shape="pill"
+         data-theme="outline"
+         data-text="signin_with"
+         data-size="large"
+         data-logo_alignment="left"
+         data-width="280">
+      </div>
 
       <p id="authStatus" style="font-size:13px;color:var(--muted);margin:0;min-height:20px"></p>
     </div>
@@ -2912,19 +2929,6 @@
     if (existingSession) {
       showCanvas(existingSession);
     } else {
-      // Wait for GSI to load, then render button
-      window.addEventListener('load', () => {
-        if (typeof google === 'undefined') return;
-        google.accounts.id.initialize({
-          client_id: window.GOOGLE_CLIENT_ID,
-          callback: handleGoogleCredential,
-          auto_select: false,
-        });
-        google.accounts.id.renderButton(
-          document.getElementById('googleSignInBtn'),
-          { theme: 'outline', size: 'large', shape: 'pill', width: 280 }
-        );
-      });
     }
     // ─────────────────────────────────────────────────────────────────────────
 
