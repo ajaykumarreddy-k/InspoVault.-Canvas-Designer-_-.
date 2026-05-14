@@ -11,23 +11,6 @@
     href="https://fonts.googleapis.com/css2?family=Google+Sans:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400&family=Google+Sans+Display:ital,wght@0,400;0,700;1,400;1,700&family=Google+Sans+Text:wght@300;400;500&display=swap"
     rel="stylesheet">
 
-  <!-- Google Identity Services -->
-  <script src="https://accounts.google.com/gsi/client" async></script>
-  <script>
-    // ── Replace with your actual Google OAuth Web Client ID ──
-    window.GOOGLE_CLIENT_ID = "16388795387-o2sn381p50cdinv0bn1l6agrj4b8lbgd.apps.googleusercontent.com";
-    
-    // Define the callback synchronously so Google's script can always find it
-    window._googleCredentialResolver = null;
-    window._googleCredentialPromise = new Promise(resolve => {
-      window._googleCredentialResolver = resolve;
-    });
-    window.handleGoogleCredential = function(response) {
-      const statusEl = document.getElementById('authStatus');
-      if (statusEl) statusEl.textContent = 'Verifying…';
-      window._googleCredentialResolver(response);
-    };
-  </script>
   <style>
     :root {
       --cream: #f5f0eb;
@@ -1114,38 +1097,59 @@
       line-height: 1.5;
     }
 
-    .google-btn {
+    .login-form {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-top: 24px;
+      text-align: left;
+    }
+    .login-input {
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-family: 'Google Sans', sans-serif;
+      font-size: 14px;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .login-input:focus {
+      border-color: var(--blue);
+    }
+    .login-submit {
+      background: var(--blue);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: 14px;
+      font-family: 'Google Sans', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 12px;
-      width: 100%;
-      padding: 16px;
-      border-radius: 100px;
-      border: 1px solid var(--border);
-      background: var(--white);
-      font-family: 'Google Sans', sans-serif;
-      font-size: 15px;
-      font-weight: 500;
-      color: var(--text);
-      cursor: pointer;
-      transition: all 0.2s;
+      gap: 8px;
     }
-
-    .google-btn:hover {
-      background: #fcfcfc;
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.06);
-      transform: translateY(-1px);
+    .login-submit:hover {
+      background: var(--blue-hover);
     }
-
+    .login-submit:active {
+      transform: scale(0.98);
+    }
     .auth-loader {
-      border: 3px solid rgba(0, 0, 0, 0.1);
-      border-top-color: var(--blue);
+      width: 18px;
+      height: 18px;
+      border: 2.5px solid rgba(255,255,255,0.3);
+      border-top-color: white;
       border-radius: 50%;
-      width: 20px;
-      height: 20px;
-      animation: spin 1s linear infinite;
-      display: inline-block;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
     }
 
     /* Boards Modal Specifics */
@@ -1958,26 +1962,14 @@
     ">
       <div style="font-size:48px;margin-bottom:16px">🗄️</div>
       <h1 style="font-family:'Google Sans Display',sans-serif;font-size:26px;font-weight:700;color:var(--text);margin:0 0 8px">InspoVault</h1>
-      <p style="color:var(--muted);font-size:14px;margin:0 0 36px;line-height:1.6">Your private creative canvas.<br>Sign in to continue.</p>
+      <p style="color:var(--muted);font-size:14px;margin:0 0 36px;line-height:1.6">Your private creative canvas.<br>Enter whitelisted email & vault password.</p>
 
-      <!-- Google Sign-In button rendered by HTML API -->
-      <div id="g_id_onload"
-         data-client_id="16388795387-o2sn381p50cdinv0bn1l6agrj4b8lbgd.apps.googleusercontent.com"
-         data-context="signin"
-         data-ux_mode="popup"
-         data-callback="handleGoogleCredential"
-         data-auto_prompt="false">
-      </div>
-
-      <div class="g_id_signin"
-         style="display:flex;justify-content:center;margin-bottom:20px"
-         data-type="standard"
-         data-shape="pill"
-         data-theme="outline"
-         data-text="signin_with"
-         data-size="large"
-         data-logo_alignment="left"
-         data-width="280">
+      <div class="login-form">
+        <input type="email" id="loginEmail" class="login-input" placeholder="Email Address" required>
+        <input type="password" id="loginPassword" class="login-input" placeholder="Password" required>
+        <button id="loginSubmit" class="login-submit">
+          Unlock Vault
+        </button>
       </div>
 
       <p id="authStatus" style="font-size:13px;color:var(--muted);margin:0;min-height:20px"></p>
@@ -2066,26 +2058,15 @@
     <div class="generic-box center">
       <div class="login-icon">🔐</div>
       <h2 class="login-title">Unlock Your Vault</h2>
-      <p class="login-sub">Sign in ONLY Few accounts are white Listed So its unlikely that ur Account is there LOL
-        Anyway</p>
+      <p class="login-sub">Enter a whitelisted email and the vault password (Kvr@6303945563) to gain access.</p>
 
-      <button class="google-btn" id="googleLoginBtn">
-        <svg viewBox="0 0 24 24" width="20" height="20" xmlns="http://www.w3.org/2000/svg">
-          <path
-            d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-            fill="#4285F4" />
-          <path
-            d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-            fill="#34A853" />
-          <path
-            d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-            fill="#FBBC05" />
-          <path
-            d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-            fill="#EA4335" />
-        </svg>
-        Continue with Google
-      </button>
+      <div class="login-form">
+        <input type="email" id="modalEmail" class="login-input" placeholder="Email Address" required>
+        <input type="password" id="modalPassword" class="login-input" placeholder="Password" required>
+        <button id="modalLoginSubmit" class="login-submit">
+          Unlock Vault
+        </button>
+      </div>
     </div>
   </div>
 
@@ -2921,46 +2902,81 @@
       }
     }
 
-    // Initialize backend connection
+    // Initialize backend connections
     const statusEl = document.getElementById('authStatus');
-    statusEl.textContent = 'Loading vault backend...';
+    statusEl.textContent = 'Initializing secure vault...';
     
-    import('./convex-api.js').then((module) => {
-      window.vaultAPI = module.vaultAPI;
-      statusEl.textContent = '✅ Backend Loaded. Please sign in.';
+    // Load both APIs
+    Promise.all([
+      import('./convex-api.js'),
+      import('./supabase-auth.js')
+    ]).then(([convexMod, authMod]) => {
+      window.vaultAPI = convexMod.vaultAPI;
+      window.authAPI = authMod;
+      
+      statusEl.textContent = '✅ Vault Ready. Please sign in.';
 
-      const existingSession = getStoredSession();
-      if (existingSession) showCanvas(existingSession);
+      if (existingSession) {
+        window.isLoggedIn = true;
+        showCanvas(existingSession);
+        setTimeout(() => { if (window.refreshAuthUI) window.refreshAuthUI(); }, 500);
+      }
 
-      window._googleCredentialPromise.then(async (response) => {
-        statusEl.textContent = '⏳ Step 1: Connecting to Convex...';
-        statusEl.style.color = '#f59e0b'; // Orange
+      // Handle Login Form Submission
+      async function handleVaultLogin(email, password, btn) {
+        const originalText = btn.textContent;
+        btn.innerHTML = '<span class="auth-loader"></span> Unlocking...';
+        btn.disabled = true;
         
         try {
-          if (!window.vaultAPI.verifyAuth) throw new Error("Auth API missing");
+          const { user } = await authMod.signInWithEmail(email, password);
+          const allowed = await authMod.isEmailAllowed(user.email);
           
-          const result = await window.vaultAPI.verifyAuth(response.credential);
-          
-          if (result.allowed) {
-            statusEl.textContent = '✅ Step 2: Access Granted!';
-            statusEl.style.color = '#10b981'; // Green
-            storeSession(result);
-            await showCanvas(result);
+          if (allowed) {
+            const userData = {
+              email: user.email,
+              name: user.user_metadata?.full_name || user.email.split('@')[0],
+              picture: user.user_metadata?.avatar_url || 'https://ui-avatars.com/api/?name=' + user.email
+            };
+            storeSession(userData);
+            window.isLoggedIn = true;
+            await showCanvas(userData);
+            if (window.refreshAuthUI) window.refreshAuthUI();
           } else {
-            showDenied(result.email, result.error);
+            showDenied(user.email);
+            await authMod.signOut();
           }
         } catch (err) {
-          console.error('Auth error:', err);
-          statusEl.textContent = `❌ System Error: ${err.message}`;
-          statusEl.style.color = '#ef4444'; // Red
-          alert(`Auth Error: ${err.message}`);
+          console.error('Login error:', err);
+          statusEl.textContent = `❌ ${err.message}`;
+          statusEl.style.color = '#ef4444';
+          alert(`Access Denied: ${err.message}`);
+        } finally {
+          btn.textContent = originalText;
+          btn.disabled = false;
         }
+      }
+
+      // Wire up buttons
+      const loginBtn = document.getElementById('loginSubmit');
+      const modalBtn = document.getElementById('modalLoginSubmit');
+
+      loginBtn.addEventListener('click', () => {
+        const email = document.getElementById('loginEmail').value;
+        const pass = document.getElementById('loginPassword').value;
+        handleVaultLogin(email, pass, loginBtn);
       });
+
+      modalBtn.addEventListener('click', () => {
+        const email = document.getElementById('modalEmail').value;
+        const pass = document.getElementById('modalPassword').value;
+        handleVaultLogin(email, pass, modalBtn);
+      });
+
     }).catch(err => {
-      console.error('Module load error:', err);
-      statusEl.textContent = `🚨 CRITICAL ERROR: Network blocked. Turn off Brave Shields.`;
+      console.error('Initialization error:', err);
+      statusEl.textContent = `🚨 CRITICAL ERROR: Vault connection failed.`;
       statusEl.style.color = '#ef4444';
-      alert(`Critical Load Error: ${err.message}`);
     });
 
     // Sign-out — accessible globally for the userChip button
@@ -3422,16 +3438,14 @@
       });
 
       // 7. Modals: Login & Storage
-      let isLoggedIn = false;
       const loginModal = document.getElementById('loginModal');
       const storageModal = document.getElementById('storageModal');
-      const googleLoginBtn = document.getElementById('googleLoginBtn');
       const vaultTriggers = document.querySelectorAll('.vault-trigger');
 
       vaultTriggers.forEach(btn => {
         btn.addEventListener('click', (e) => {
           e.preventDefault();
-          if (!isLoggedIn) {
+          if (!window.isLoggedIn) {
             loginModal.classList.remove('hidden');
             speak("Security check! Identify yourself. 🕵️‍♀️");
           } else {
@@ -3441,29 +3455,21 @@
         });
       });
 
-      googleLoginBtn.addEventListener('click', () => {
-        const originalContent = googleLoginBtn.innerHTML;
-        googleLoginBtn.innerHTML = '<span class="auth-loader"></span> Authenticating...';
-        googleLoginBtn.style.pointerEvents = 'none';
+      // Export a function to refresh UI on login
+      window.refreshAuthUI = function() {
+        loginModal.classList.add('hidden');
+        speak("Welcome back, Creator! 🎉");
 
-        setTimeout(() => {
-          googleLoginBtn.innerHTML = originalContent;
-          googleLoginBtn.style.pointerEvents = 'auto';
-          loginModal.classList.add('hidden');
-          isLoggedIn = true;
-          speak("Welcome back, Creator! 🎉");
+        const toast = document.getElementById('toast');
+        toast.classList.remove('hidden');
+        toast.querySelector('.toast-message').innerHTML = `System Auth: <span class="toast-highlight">Vault Unlocked</span>`;
 
-          const toast = document.getElementById('toast');
-          toast.classList.remove('hidden');
-          toast.querySelector('.toast-message').innerHTML = `System Auth: <span class="toast-highlight">Vault Unlocked</span>`;
-
-          vaultTriggers.forEach(btn => {
-            btn.innerText = "Vault Unlocked 🔓";
-            btn.style.background = "var(--blue)";
-            btn.style.color = "var(--white)";
-          });
-        }, 1500);
-      });
+        vaultTriggers.forEach(btn => {
+          btn.innerText = "Vault Unlocked 🔓";
+          btn.style.background = "var(--blue)";
+          btn.style.color = "var(--white)";
+        });
+      };
 
       // 8. Modals: Boards & Search
       document.getElementById('navBoards').addEventListener('click', (e) => {

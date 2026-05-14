@@ -10,15 +10,14 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON);
 
 // ── Auth Helpers ──────────────────────────────────────────────────
 
-/** Sign in with Google (redirects back to the app) */
-export async function signInWithGoogle() {
-  const { error } = await supabase.auth.signInWithOAuth({
-    provider: "google",
-    options: {
-      redirectTo: window.location.origin + window.location.pathname,
-    },
+/** Sign in with Email/Password */
+export async function signInWithEmail(email, password) {
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email: email,
+    password: password,
   });
   if (error) throw error;
+  return data;
 }
 
 /** Sign out */
