@@ -2892,12 +2892,16 @@
       }
     }
 
-    function showDenied(email) {
+    function showDenied(email, errorMsg) {
       document.getElementById('authStatus').textContent = '';
       document.getElementById('authCard').style.display = 'none';
       document.getElementById('deniedCard').style.display = '';
-      document.getElementById('deniedEmail').textContent =
-        `${email} is not on the authorized list.`;
+      
+      if (errorMsg) {
+        document.getElementById('deniedEmail').textContent = `Error: ${errorMsg}`;
+      } else {
+        document.getElementById('deniedEmail').textContent = `${email} is not on the authorized list.`;
+      }
     }
 
     // Called by Google Identity Services when user completes sign-in
@@ -2909,7 +2913,7 @@
           storeSession(result);
           await showCanvas(result);
         } else {
-          showDenied(result.email);
+          showDenied(result.email, result.error);
         }
       } catch (err) {
         console.error('Auth error:', err);

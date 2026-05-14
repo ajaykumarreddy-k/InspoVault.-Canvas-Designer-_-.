@@ -57,6 +57,9 @@ export const vaultAPI = {
    * @returns {{ allowed: bool, email: string, name: string, picture: string }}
    */
   verifyAuth: async (idToken) => {
-    return await convex.action("vault:verifyGoogleAuth", { idToken });
+    return await convex.action("vault:verifyGoogleAuth", { 
+      idToken,
+      clientId: window.GOOGLE_CLIENT_ID
+    });
   },
 };

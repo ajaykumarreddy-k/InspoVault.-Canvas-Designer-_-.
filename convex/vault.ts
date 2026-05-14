@@ -166,27 +166,35 @@ export const loadCanvasState = action({
 // it server-side and check the email against ALLOWED_EMAILS.
 
 export const verifyGoogleAuth = action({
-  args: { idToken: v.string() },
+  args: { idToken: v.string(), clientId: v.optional(v.string()) },
   handler: async (_ctx, args) => {
-    const clientId = process.env.GOOGLE_OAUTH_CLIENT_ID!;
-    const client = new OAuth2Client(clientId);
+    try {
+      const clientId = process.env.GOOGLE_OAUTH_CLIENT_ID || args.clientId;
+      if (!clientId) throw new Error("No Google Client ID provided to verify token.");
+      
+      const client = new OAuth2Client(clientId);
 
-    // Verify the token is a real Google-signed token
-    const ticket = await client.verifyIdToken({
-      idToken: args.idToken,
-      audience: clientId,
-    });
+      // Verify the token is a real Google-signed token
+      const ticket = await client.verifyIdToken({
+        idToken: args.idToken,
+        audience: clientId,
+      });
 
-    const payload = ticket.getPayload();
-    if (!payload) throw new Error("Invalid Google token — no payload");
+      const payload = ticket.getPayload();
+      if (!payload) throw new Error("Invalid Google token — no payload");
 
-    const email   = (payload.email   || "").toLowerCase();
-    const name    = payload.name    || "";
-    const picture = payload.picture || "";
+      const email   = (payload.email   || "").toLowerCase();
+      const name    = payload.name    || "";
+      const picture = payload.picture || "";
 
-    const allowed = ALLOWED_EMAILS.includes(email);
+      const allowed = ALLOWED_EMAILS.includes(email);
 
-    return { allowed, email, name, picture };
+      return { allowed, email, name, picture, error: null };
+    } catch (err: any) {
+      console.error("Auth verification failed:", err);
+      // Return a clean object instead of throwing so the frontend can display it
+      return { allowed: false, email: "Unknown", name: "", picture: "", error: err.message };
+    }
   },
 });
 
