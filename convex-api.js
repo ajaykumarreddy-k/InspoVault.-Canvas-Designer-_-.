@@ -1,4 +1,4 @@
-import { ConvexClient } from "https://esm.sh/convex/browser";
+import { ConvexClient } from "https://esm.run/convex@1.38.0/browser";
 
 // Pointing to the production deployment that has the new auth logic
 const CONVEX_URL = "https://hardy-parrot-544.convex.cloud";
